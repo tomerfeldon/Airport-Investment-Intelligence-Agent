@@ -23,7 +23,7 @@ def test_ask_runs_tool_then_returns_text(monkeypatch):
     assert answer == "BOS leads."
     assert trace == [{"tool": "rank_airports", "args": {"region": "new_england", "top_n": 3},
                       "result": {"ranking": [{"code": "BOS"}], "args_seen": {"region": "new_england", "top_n": 3}}}]
-    assert [c.role for c in history] == ["user", "model", "tool", "model"]
+    assert [c.role for c in history] == ["user", "model", "user", "model"]
     assert history[2].parts[0].function_response.name == "rank_airports"
 
 

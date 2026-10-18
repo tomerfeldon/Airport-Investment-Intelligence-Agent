@@ -29,7 +29,7 @@ Hard rules:
 6. Curated notes are hand-written context with a source; say "curated note" when you use one. Live status (FAA, OpenSky) is a snapshot and is never part of the score; say so when you mention it.
 7. Follow-up questions refer to the airports and filters already discussed unless the user says otherwise.
 8. If a tool returns an error, explain it plainly and suggest what to ask instead.
-Be concise and specific. No marketing language."""
+Be concise and specific. Plain markdown only - no LaTeX (write >= and %, not $\ge$). No marketing language."""
 
 
 def _client() -> genai.Client:
@@ -52,7 +52,7 @@ def _generate(client: genai.Client, history: list):
             return client.models.generate_content(model=config.MODEL, contents=history, config=_config())
         except errors.APIError as e:
             if getattr(e, "code", None) in (429, 503) and attempt < 2:
-                time.sleep(2 * 2 ** attempt)
+                time.sleep(20 * (attempt + 1))   # free tier allows 5 requests/minute per model
                 continue
             raise
 
@@ -78,7 +78,7 @@ def ask(history: list, text: str, max_iterations: int = 6) -> tuple[str, list[di
                 result = {"error": f"{type(e).__name__}: {e}"}
             trace.append({"tool": call.name, "args": args, "result": result})
             parts.append(types.Part.from_function_response(name=call.name, response={"result": result}))
-        history.append(types.Content(role="tool", parts=parts))
+        history.append(types.Content(role="user", parts=parts))   # Gemini accepts only user/model; function responses travel as "user"
     return "I ran out of tool-call iterations; please narrow the question.", trace, history
 
 
@@ -97,6 +97,7 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
 
     load_dotenv()
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # Windows consoles default to a legacy code page
     answer, trace, _ = ask([], " ".join(sys.argv[1:]) or "Compare LA and Santa Ana airport congestion levels.")
     for t in trace:
         print(f"[tool] {t['tool']}({t['args']})")

@@ -147,7 +147,7 @@ An airport in T-100 but below the universe threshold gets metrics but `score = N
   ourselves so every call and result is captured for the UI and errors are returned to the
   model as `{"error": ...}` instead of crashing.
 - `ask(history, text) -> (answer, trace, history)`: append user content; loop: generate; if
-  `response.function_calls` → execute each, append model content and a `tool` content built with
+  `response.function_calls` → execute each, append model content and a `user` content built with
   `Part.from_function_response`; else return text. Cap 6 iterations.
 - 429/503 → exponential backoff, 3 attempts, then a friendly message.
 - System prompt rules: analyst assistant for airport-expansion investment; every number must

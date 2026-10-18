@@ -1459,7 +1459,7 @@ git commit -m "Add real-data sanity tests"
   - `agent.transcribe(audio_bytes: bytes, mime_type: str) -> str`
   - `python agent.py "<question>"` prints trace and answer
 
-Verified against google-genai 2.31.0 on 2026-10-18: passing Python functions in `GenerateContentConfig.tools` generates schemas from type hints and docstrings (`list[str] | None` → nullable ARRAY, defaults kept); `AutomaticFunctionCallingConfig(disable=True)` leaves `response.function_calls` for us; `types.Part.from_function_response(name=, response=)` and `types.Content(role="tool", parts=[...])` build the reply.
+Verified against google-genai 2.31.0 on 2026-10-18: passing Python functions in `GenerateContentConfig.tools` generates schemas from type hints and docstrings (`list[str] | None` → nullable ARRAY, defaults kept); `AutomaticFunctionCallingConfig(disable=True)` leaves `response.function_calls` for us; `types.Part.from_function_response(name=, response=)` and `types.Content(role="user", parts=[...])` build the reply (the API rejects a `tool` role).
 
 - [ ] **Step 1: Write the failing test (loop logic with a fake client; no network)**
 
