@@ -1,0 +1,6 @@
+[client]
+# Hide the Streamlit "Deploy" button and developer menu; this is a local analyst tool.
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
