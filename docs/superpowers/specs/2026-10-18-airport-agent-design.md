@@ -37,7 +37,7 @@ Out of scope (stated in DESIGN.md as future work)
 | **BTS T-100 Segment (All Carriers)**, TranStats table `FMG` | per segment × month × carrier: `DEPARTURES_PERFORMED`, `SEATS`, `PASSENGERS`, `FREIGHT`, `DISTANCE`, `ORIGIN/DEST` (+ state, country), `AIRCRAFT_TYPE`, `CLASS`, `YEAR`, `MONTH` | `scripts/fetch_data.py` replays the TranStats download form: GET (session cookie + `__VIEWSTATE`/`__EVENTVALIDATION`) → POST field checkboxes + `cboGeography=All`, `cboYear`, `cboPeriod=All`, `btnDownload=Download` → zip → CSV. Verified working 2026-10-18 on the sibling table `FIM`. | Backbone: demand, load factor, departures, distance |
 | **OurAirports** `airports.csv`, `runways.csv` (public domain) | IATA/ICAO codes, lat/lon, `iso_region` (e.g. `US-MA`), municipality; runway `length_ft`, `closed` | Direct CSV URLs on `davidmegginson.github.io/ourairports-data/`, fetched by the same script | Physical capacity proxy, region filter, ICAO for OpenSky |
 | **FAA NAS Status** | Current ground delay programs, ground stops, arrival/departure delays, closures, with reason | `https://nasstatus.faa.gov/api/airport-status-information` (XML, no key). Verified 2026-10-18. | Live congestion overlay |
-| **OpenSky Network** (optional) | Yesterday's departures per airport (ICAO), with estimated destination | `GET /api/flights/departure?airport=&begin=&end=`, OAuth2 client-credentials (free account); anonymous works with 400 credits/day. Verified 2026-10-18. | Live cross-check of departure volume and long-haul share; "not configured" when env vars are absent |
+| **OpenSky Network** (optional) | Yesterday's departures per airport (ICAO), with estimated destination | `GET /api/flights/departure?airport=&begin=&end=`, OAuth2 client-credentials (free account); anonymous works with 400 credits/day. Verified 2026-10-18. | Live departure count and top destinations; "not configured" when env vars are absent |
 | **Curated notes** `data/airport_notes.json` | ≤ 10 structural facts with a source URL each (e.g. SFO closely spaced parallel runways; SNA 5,701 ft runway + legal passenger cap + curfew; LGA/DCA perimeter & slot rules; ANC Asia–US cargo stop) | Hand-written at implementation time, every fact verified against its source | Honest injection of domain knowledge the data cannot see; rendered with the label "curated note" |
 
 Data years: the latest two complete calendar years available in T-100 (expected 2024 and 2025;
@@ -130,7 +130,7 @@ tests/test_metrics.py
    note, live status.
 4. `compare_airports(codes: list[str]) -> dict` — 2–5 airports side by side, same fields.
 5. `long_haul_share(code: str, threshold_miles: int = 1500) -> dict` — passenger and all-cargo
-   shares, top destinations, OpenSky cross-check when configured.
+   shares, top destinations, curated notes for the airport.
 6. `live_status(code: str) -> dict` — FAA entries for the airport; OpenSky departures yesterday.
 
 Every result carries `meta` (`data_year`, `prior_year`, `source`, `universe_size`) and
