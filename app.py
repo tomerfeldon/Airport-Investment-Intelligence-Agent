@@ -90,6 +90,8 @@ for m in ss.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
         render_trace(m.get("trace", []))
+        if m.get("model"):
+            st.caption(f"answered by {m['model']}")
 
 audio = st.audio_input("Or ask by voice")
 if audio is not None and audio.getvalue() != ss.get("last_audio"):
@@ -113,4 +115,6 @@ if prompt:
                 answer, trace = f"The model call failed: {e}. Check the API key and try again in a minute.", []
         st.markdown(answer)
         render_trace(trace)
-    ss.messages.append({"role": "assistant", "content": answer, "trace": trace})
+        if agent.last_model:
+            st.caption(f"answered by {agent.last_model}")
+    ss.messages.append({"role": "assistant", "content": answer, "trace": trace, "model": agent.last_model})

@@ -1,6 +1,7 @@
 import types as pytypes
 
-from google.genai import types
+import pytest
+from google.genai import errors, types
 
 import agent
 
@@ -47,3 +48,44 @@ def test_iteration_cap(monkeypatch):
     monkeypatch.setitem(agent._BY_NAME, "live_status", lambda **kw: {"ok": True})
     answer, trace, _ = agent.ask([], "loop", max_iterations=3)
     assert len(trace) == 3 and "ran out" in answer
+
+
+class FakeModels:
+    def __init__(self, behaviour):
+        self.behaviour, self.calls = behaviour, []
+
+    def generate_content(self, model, contents, config):
+        self.calls.append(model)
+        outcome = self.behaviour[model]
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+
+def _quota_error(kind):
+    return errors.ClientError(429, {"error": {"code": 429, "message": f"quota {kind}", "status": "RESOURCE_EXHAUSTED",
+                                              "details": [{"quotaId": f"GenerateRequests{kind}PerProjectPerModel-FreeTier"}]}})
+
+
+def test_daily_quota_moves_to_next_model(monkeypatch):
+    monkeypatch.setattr(agent.config, "MODELS", ["m-a", "m-b"])
+    monkeypatch.setattr(agent.time, "sleep", lambda s: None)
+    fake = FakeModels({"m-a": _quota_error("PerDay"), "m-b": FakeResponse(text="ok")})
+    assert agent._generate(pytypes.SimpleNamespace(models=fake), []).text == "ok"
+    assert fake.calls == ["m-a", "m-b"] and agent.last_model == "m-b"
+
+
+def test_per_minute_quota_waits_once_then_moves_on(monkeypatch):
+    monkeypatch.setattr(agent.config, "MODELS", ["m-a", "m-b"])
+    sleeps = []
+    monkeypatch.setattr(agent.time, "sleep", sleeps.append)
+    fake = FakeModels({"m-a": _quota_error("PerMinute"), "m-b": FakeResponse(text="ok")})
+    assert agent._generate(pytypes.SimpleNamespace(models=fake), []).text == "ok"
+    assert fake.calls == ["m-a", "m-a", "m-b"] and sleeps == [20]
+
+
+def test_all_models_exhausted_raises_friendly_error(monkeypatch):
+    monkeypatch.setattr(agent.config, "MODELS", ["m-a"])
+    monkeypatch.setattr(agent.time, "sleep", lambda s: None)
+    with pytest.raises(RuntimeError, match="quota exhausted"):
+        agent._generate(pytypes.SimpleNamespace(models=FakeModels({"m-a": _quota_error("PerDay")})), [])

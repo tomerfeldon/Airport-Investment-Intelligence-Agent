@@ -45,16 +45,39 @@ def _config() -> types.GenerateContentConfig:
     )
 
 
+last_model: str | None = None   # which model produced the most recent response (shown in the UI)
+
+
+def _with_fallback(call):
+    """Run call(model) over config.MODELS.
+
+    Free-tier quotas are per model: 5 requests/minute and a small daily cap. A per-minute 429 gets one
+    20 s wait; a daily-cap 429 (or a second per-minute hit) moves on to the next model. 503 = overload.
+    """
+    global last_model
+    last_error = None
+    for model in config.MODELS:
+        for attempt in range(2):
+            try:
+                result = call(model)
+                last_model = model
+                return result
+            except errors.APIError as e:
+                last_error = e
+                if getattr(e, "code", None) not in (429, 503):
+                    raise
+                if attempt == 0 and "PerDay" not in str(e):
+                    time.sleep(20)
+                    continue
+                break   # next model
+    raise RuntimeError(
+        f"Gemini free-tier quota exhausted for {', '.join(config.MODELS)}. Daily quotas reset at midnight "
+        f"Pacific time; try later or set GEMINI_MODEL to another model. Last error: {last_error}")
+
+
 def _generate(client: genai.Client, history: list):
-    """One model call with retries on rate limit / overload."""
-    for attempt in range(3):
-        try:
-            return client.models.generate_content(model=config.MODEL, contents=history, config=_config())
-        except errors.APIError as e:
-            if getattr(e, "code", None) in (429, 503) and attempt < 2:
-                time.sleep(20 * (attempt + 1))   # free tier allows 5 requests/minute per model
-                continue
-            raise
+    """One model call, falling back across models on quota errors."""
+    return _with_fallback(lambda model: client.models.generate_content(model=model, contents=history, config=_config()))
 
 
 def ask(history: list, text: str, max_iterations: int = 6) -> tuple[str, list[dict], list]:
@@ -84,10 +107,11 @@ def ask(history: list, text: str, max_iterations: int = 6) -> tuple[str, list[di
 
 def transcribe(audio_bytes: bytes, mime_type: str = "audio/wav") -> str:
     """Speech to text with the same model (voice input bonus)."""
-    r = _client().models.generate_content(
-        model=config.MODEL,
+    client = _client()
+    r = _with_fallback(lambda model: client.models.generate_content(
+        model=model,
         contents=[types.Part.from_bytes(data=audio_bytes, mime_type=mime_type),
-                  "Transcribe this audio verbatim. Return only the transcript."])
+                  "Transcribe this audio verbatim. Return only the transcript."]))
     return (r.text or "").strip()
 
 
@@ -101,4 +125,5 @@ if __name__ == "__main__":
     answer, trace, _ = ask([], " ".join(sys.argv[1:]) or "Compare LA and Santa Ana airport congestion levels.")
     for t in trace:
         print(f"[tool] {t['tool']}({t['args']})")
+    print(f"[model] {last_model}")
     print(answer)

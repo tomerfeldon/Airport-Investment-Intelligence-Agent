@@ -1,7 +1,11 @@
 """Every tunable knob of the agent. DESIGN.md explains each choice; nothing else lives here."""
 import os
 
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
+# Free-tier quotas are per model and per day (gemini-3.8-flash: 5 requests/minute, 20/day on 2026-10-19),
+# so the agent walks this list when a model answers 429. GEMINI_MODEL, if set, goes first.
+MODELS = [m for m in dict.fromkeys([os.environ.get("GEMINI_MODEL", ""), "gemini-3.8-flash",
+                                     "gemini-3.5-flash-lite", "gemini-2.5-flash"]) if m]
+MODEL = MODELS[0]
 
 DATA_DIR = "data"
 YEARS = [2024, 2025]                      # [prior, latest]; both must be complete calendar years in T-100

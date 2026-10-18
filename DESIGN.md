@@ -116,8 +116,9 @@ temperature 0.2.
   spacing, SNA's legal cap) are covered by labeled curated notes rather than hidden heuristics.
 - **Manual tool loop vs. SDK automatic function calling.** About 25 extra lines buy a visible trace and controlled
   error handling — the trace is the "explain your reasoning" feature.
-- **Free Gemini tier.** No cost, native function calling; a question costs at most three model calls. The
-  free tier allows 5 requests per minute, so the loop backs off and retries, and a demo is paced by that limit.
+- **Free Gemini tier.** No cost, native function calling; a question costs at most three model calls. Quotas
+  are per model and small (5 requests/minute and 20/day for `gemini-3.8-flash` on 2026-10-19), so the loop
+  falls back through `gemini-3.5-flash-lite` and `gemini-2.5-flash` and the UI shows which model answered.
 - **One model provider, by choice.** The tools are plain Python functions and only `agent.py` (~40 lines)
   talks to Gemini; swapping to Groq or OpenRouter through their OpenAI-compatible APIs is a small, contained change.
 
