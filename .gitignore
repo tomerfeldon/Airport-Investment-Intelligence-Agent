@@ -7,3 +7,4 @@ data/raw/
 .streamlit/secrets.toml
 .pytest_cache/
 .playwright-mcp/
+*.zip
