@@ -20,6 +20,9 @@ Data for 2024–2025 is committed, so no download is needed. To refresh it (BTS 
 Optional live departures from OpenSky: create a free API client at https://opensky-network.org and set
 `OPENSKY_CLIENT_ID` / `OPENSKY_CLIENT_SECRET` in `.env`.
 
+Free-tier note: Gemini allows 5 requests per minute for `gemini-3.8-flash`, and one question uses 2–3 requests.
+The agent waits and retries on a rate-limit error; if you see one anyway, wait a minute.
+
 ## Try asking
 
 - Which airports in New England are strong candidates for terminal expansion?
