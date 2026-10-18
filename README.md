@@ -34,6 +34,11 @@ The agent waits and retries on a rate-limit error; if you see one anyway, wait a
 Under every answer, "Data behind this answer" shows each tool call and its full result. Voice input (microphone
 widget above the chat box) is transcribed by the same model.
 
+![New England ranking in the app](docs/screenshots/q1-new-england.png)
+
+The full answers to all four questions, as produced on 2026-10-19 with the tool calls the model made, are in
+[`docs/sample-answers.md`](docs/sample-answers.md).
+
 ## Command line
 
     python agent.py "Compare LA and Santa Ana airport congestion levels."
