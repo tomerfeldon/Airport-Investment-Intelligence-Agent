@@ -33,7 +33,7 @@ below the threshold still get metrics, but no score - percentiles against the un
 | growth | passengers latest / passengers prior − 1 (2025 vs 2024) | direction of travel |
 | average stage length, international share, long-haul share | distance-weighted by departures | network character; answers "how long-haul is this airport?" |
 
-### 2.3 Expansion Opportunity Score (0–100)
+### 2.3 Expansion Opportunity Score (0-100)
 
     score = 100 × Σ weightᵢ × percentile_rankᵢ        (percentiles within the universe)
 
@@ -45,7 +45,7 @@ below the threshold still get metrics, but no score - percentiles against the un
 | growth | 0.15 | investment is on the future, not the present |
 
 Design decisions:
-- **Percentile rank, not min–max.** Robust to ATL/LAX outliers, and "score 85" reads as "top 15%". Percentile
+- **Percentile rank, not min-max.** Robust to ATL/LAX outliers, and "score 85" reads as "top 15%". Percentile
   ranking is invariant to monotonic transforms, so no log on passengers is needed.
 - **Missing components drop out and the remaining weights renormalize**, with a caveat in the result, instead of
   silently scoring zero.
@@ -58,7 +58,7 @@ Design decisions:
 ### 2.4 Unmet-demand signal (a proxy, labeled as such)
 Five flags with thresholds in `config.py`: full flights (load factor ≥ 85%), runway-constrained (pressure
 percentile ≥ 80%), growing faster than the universe median, live FAA congestion, structural constraint (curated
-note). 0–1 flags = low, 2–3 = moderate, 4–5 = high. Every result repeats: passengers who chose another airport
+note). 0-1 flags = low, 2-3 = moderate, 4-5 = high. Every result repeats: passengers who chose another airport
 or did not fly are not observable in public data.
 
 ### 2.5 Long-haul share
@@ -85,7 +85,7 @@ SEA 84.4 and DEN 82.5 - runway pressure and load factor, not raw size, separate 
 
 | Source | What we use | How | Limits |
 |---|---|---|---|
-| BTS T-100 Segment (All Carriers) | per-segment departures, seats, passengers, distance, service class, 2024–2025 | `scripts/fetch_data.py` replays the TranStats download form (no stable URL exists); the annual aggregate (93k rows, 1.1 MB) is committed so reviewers need no download | 3–6 month publication lag; annual aggregation hides seasonality |
+| BTS T-100 Segment (All Carriers) | per-segment departures, seats, passengers, distance, service class, 2024-2025 | `scripts/fetch_data.py` replays the TranStats download form (no stable URL exists); the annual aggregate (93k rows, 1.1 MB) is committed so reviewers need no download | 3-6 month publication lag; annual aggregation hides seasonality |
 | OurAirports | runway length/status, coordinates, ICAO codes | public-domain CSV | runway count ignores spacing, taxiways, gates - see curated notes |
 | FAA NAS Status | current ground delays, ground stops, closures | public XML, no key | snapshot only, no history |
 | OpenSky Network (optional) | yesterday's departures per airport | REST + OAuth2, free account | volunteer-receiver coverage; counts are lower bounds |

@@ -71,7 +71,7 @@ with st.sidebar:
         f"{meta['universe_size']} US airports with ≥ {config.UNIVERSE_MIN_PASSENGERS:,} originating passengers in {config.YEARS[-1]}.")
     st.markdown("| component | weight |\n|---|---|\n" + "\n".join(f"| {k} | {v:.2f} |" for k, v in config.WEIGHTS.items()))
     st.caption(
-        f"Data: BTS T-100 {config.YEARS[0]}–{config.YEARS[-1]} · OurAirports runways (≥ {config.MIN_RUNWAY_FT:,} ft) · "
+        f"Data: BTS T-100 {config.YEARS[0]}-{config.YEARS[-1]} · OurAirports runways (≥ {config.MIN_RUNWAY_FT:,} ft) · "
         f"FAA NAS status (live) · OpenSky ({'configured' if live.opensky_configured() else 'not configured'})")
     st.caption("Live signals are shown next to the score, never inside it. The score measures capacity-expansion "
                "opportunity, not profitability.")

@@ -13,7 +13,7 @@ methodology and tradeoffs.
     copy .env.example .env            # then put your free Gemini key in .env (https://aistudio.google.com/apikey)
     streamlit run app.py
 
-Data for 2024–2025 is committed, so no download is needed. To refresh it (BTS publishes with a lag):
+Data for 2024-2025 is committed, so no download is needed. To refresh it (BTS publishes with a lag):
 
     python scripts/fetch_data.py
 
@@ -21,7 +21,7 @@ Optional live departures from OpenSky: create a free API client at https://opens
 `OPENSKY_CLIENT_ID` / `OPENSKY_CLIENT_SECRET` in `.env`.
 
 Free-tier note: Gemini quotas are per model - on 2026-10-19 `gemini-3.8-flash` allowed 5 requests per minute
-and 20 per day, and one question uses 2–3 requests. The agent therefore falls back through
+and 20 per day, and one question uses 2-3 requests. The agent therefore falls back through
 `gemini-3.5-flash-lite` and `gemini-2.5-flash` when a model is exhausted (`config.MODELS`); each answer shows
 which model produced it. Set `GEMINI_MODEL` in `.env` to put another model first.
 

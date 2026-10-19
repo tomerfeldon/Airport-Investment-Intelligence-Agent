@@ -21,7 +21,7 @@ Stance that drives every decision below:
 In scope
 - Universe: US airports with ≥ 500,000 originating passengers (passenger service) in the latest
   data year - roughly the 110 largest. Threshold lives in `config.py`.
-- Question types: rank/filter by region or states; compare 2–5 airports; single-airport profile;
+- Question types: rank/filter by region or states; compare 2-5 airports; single-airport profile;
   long-haul share; unmet-demand signal; live status overlay; conversational follow-ups.
 - Chat UI (Streamlit). Voice input is an optional bonus (last step).
 - Deliverables: source, `README.md` (run instructions, screenshots), `DESIGN.md`.
@@ -38,10 +38,10 @@ Out of scope (stated in DESIGN.md as future work)
 | **OurAirports** `airports.csv`, `runways.csv` (public domain) | IATA/ICAO codes, lat/lon, `iso_region` (e.g. `US-MA`), municipality; runway `length_ft`, `closed` | Direct CSV URLs on `davidmegginson.github.io/ourairports-data/`, fetched by the same script | Physical capacity proxy, region filter, ICAO for OpenSky |
 | **FAA NAS Status** | Current ground delay programs, ground stops, arrival/departure delays, closures, with reason | `https://nasstatus.faa.gov/api/airport-status-information` (XML, no key). Verified 2026-10-18. | Live congestion overlay |
 | **OpenSky Network** (optional) | Yesterday's departures per airport (ICAO), with estimated destination | `GET /api/flights/departure?airport=&begin=&end=`, OAuth2 client-credentials (free account); anonymous works with 400 credits/day. Verified 2026-10-18. | Live departure count and top destinations; "not configured" when env vars are absent |
-| **Curated notes** `data/airport_notes.json` | ≤ 10 structural facts with a source URL each (e.g. SFO closely spaced parallel runways; SNA 5,701 ft runway + legal passenger cap + curfew; LGA/DCA perimeter & slot rules; ANC Asia–US cargo stop) | Hand-written at implementation time, every fact verified against its source | Honest injection of domain knowledge the data cannot see; rendered with the label "curated note" |
+| **Curated notes** `data/airport_notes.json` | ≤ 10 structural facts with a source URL each (e.g. SFO closely spaced parallel runways; SNA 5,701 ft runway + legal passenger cap + curfew; LGA/DCA perimeter & slot rules; ANC Asia-US cargo stop) | Hand-written at implementation time, every fact verified against its source | Honest injection of domain knowledge the data cannot see; rendered with the label "curated note" |
 
 Data years: the latest two complete calendar years available in T-100 (expected 2024 and 2025;
-`config.YEARS`). If 2025 is incomplete at implementation time, use 2023–2024.
+`config.YEARS`). If 2025 is incomplete at implementation time, use 2023-2024.
 
 Processed data is **committed** so a reviewer can run the app without touching BTS:
 `data/t100_od_annual.csv.gz` (aggregated to year × origin × dest × class, ≈ 70k rows, < 1 MB),
@@ -67,10 +67,10 @@ Rows with `DEPARTURES_PERFORMED = 0` are dropped.
 Missing data: an airport with no runway match or no prior-year row gets `NaN` for that metric;
 the score renormalizes the remaining weights and adds a caveat. Nothing is silently zero-filled.
 
-## 5. Expansion Opportunity Score (0–100)
+## 5. Expansion Opportunity Score (0-100)
 
 ```
-score = 100 × Σ wᵢ · pctᵢ      pctᵢ = percentile rank of metricᵢ within the universe (0–1)
+score = 100 × Σ wᵢ · pctᵢ      pctᵢ = percentile rank of metricᵢ within the universe (0-1)
 ```
 
 | Component | Weight | Why |
@@ -97,7 +97,7 @@ Flags, each with its threshold in config:
 `full_flights` (LF ≥ 0.85) · `runway_constrained` (pressure percentile ≥ 0.80) ·
 `growing` (growth above universe median) · `live_congestion` (FAA lists the airport now) ·
 `structural_constraint` (curated note of type `constraint`).
-Level: 0–1 flags → low, 2–3 → moderate, 4–5 → high. The tool result always carries the sentence:
+Level: 0-1 flags → low, 2-3 → moderate, 4-5 → high. The tool result always carries the sentence:
 "Proxy signal - passengers who chose another airport or didn't fly are not observable in public data."
 
 ## 6. Architecture
@@ -128,7 +128,7 @@ tests/test_metrics.py
    key metrics and breakdown.
 3. `airport_profile(code: str) -> dict` - all metrics, breakdown, unmet-demand flags, curated
    note, live status.
-4. `compare_airports(codes: list[str]) -> dict` - 2–5 airports side by side, same fields.
+4. `compare_airports(codes: list[str]) -> dict` - 2-5 airports side by side, same fields.
 5. `long_haul_share(code: str, threshold_miles: int = 1500) -> dict` - passenger and all-cargo
    shares, top destinations, curated notes for the airport.
 6. `live_status(code: str) -> dict` - FAA entries for the airport; OpenSky departures yesterday.

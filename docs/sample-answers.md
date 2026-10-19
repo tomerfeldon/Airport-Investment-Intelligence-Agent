@@ -36,7 +36,7 @@ Boston Logan International Airport (BOS) is the primary candidate for terminal a
   * **Passenger Scale:** 21,143,295 originating passengers puts BOS in the 89.6th percentile (0.25 weight, contributing 22.4 points).
   * **Load Factor:** At 81.6%, BOS ranks in the 81.2th percentile (0.25 weight, contributing 20.3 points).
   * **Growth:** YoY growth was -0.8% (33.3rd percentile, 0.15 weight, contributing 5.0 points).
-  * *Note on Live Status:* Live status indicates FAA arrival delays (16–30 minutes due to runway construction); live FAA status is a real-time snapshot and is never part of the score.
+  * *Note on Live Status:* Live status indicates FAA arrival delays (16-30 minutes due to runway construction); live FAA status is a real-time snapshot and is never part of the score.
 * **Bradley International (BDL):**
   * Serves as New England's secondary hub, with passenger volume (3,289,186 passengers, 62.5th percentile, contributing 15.6 points) and runway utilization (43.3 departures/runway/day, 56.1st percentile, contributing 19.6 points) placing it near the national median.
 * **Secondary Growth Candidates:**
@@ -81,7 +81,7 @@ LAX exhibits higher overall operational congestion and runway pressure than SNA,
 * **Passenger Volume (25% weight):** LAX operates at massive hub scale with 36,778,508 passengers (97.2nd percentile, contributing 24.3 points) versus SNA's 5,532,646 passengers (72.2nd percentile, contributing 18.1 points).
 * **Load Factor (25% weight):** LAX planes are fuller on average at 81.6% (79.9th percentile, contributing 20.0 points) than SNA's 79.7% (60.4th percentile, contributing 15.1 points). Neither meets the full flights threshold of >= 85%.
 * **YoY Growth (15% weight):** SNA is expanding faster at 2.7% growth (63.9th percentile, contributing 9.6 points), triggering the unmet-demand growing flag (above the universe median of +1.3%), whereas LAX contracted by -3.8% (17.4th percentile, contributing 2.6 points).
-* **Structural & Regulatory Constraints:** A curated note for SNA highlights that commercial service relies on a single runway (20R/2L, ~5,700 ft) governed by the John Wayne Airport Settlement Agreement, which caps annual passenger totals (11.8M through 2025, 12.2M conditional for 2026–2030), restricts daily departures, and imposes a nighttime curfew (10 p.m.–7 a.m. through 2035). As noted, capacity at SNA is legal before it is physical.
+* **Structural & Regulatory Constraints:** A curated note for SNA highlights that commercial service relies on a single runway (20R/2L, ~5,700 ft) governed by the John Wayne Airport Settlement Agreement, which caps annual passenger totals (11.8M through 2025, 12.2M conditional for 2026-2030), restricts daily departures, and imposes a nighttime curfew (10 p.m.-7 a.m. through 2035). As noted, capacity at SNA is legal before it is physical.
 * **Live Status:** At query time, LAX had an active FAA closure advisory concerning non-scheduled transient GA aircraft (triggering its live congestion flag), while SNA had no active FAA advisories. This live status is a snapshot and is not part of the score.
 
 ### Assumptions & Caveats

@@ -320,7 +320,7 @@ if __name__ == "__main__":
     print("done")
 ```
 
-- [ ] **Step 4: Run the script (2–5 minutes; TranStats is slow)**
+- [ ] **Step 4: Run the script (2-5 minutes; TranStats is slow)**
 
 Run: `.venv/Scripts/python.exe scripts/fetch_data.py`
 Expected (numbers approximate):
@@ -1347,7 +1347,7 @@ Expected: `6 passed`
 - [ ] **Step 5: Smoke-test against real data (no LLM yet)**
 
 Run: `.venv/Scripts/python.exe -c "import json, tools; r = tools.rank_airports(region='new_england'); print(json.dumps([(a['code'], a['score'], a['runways'], a['load_factor_pct']) for a in r['ranking']])); print(r['meta'])"`
-Expected: six New England airports (BOS, BDL, PVD, MHT, PWM, BTV in some order) with scores between 0 and 100, and `universe_size` around 100–130.
+Expected: six New England airports (BOS, BDL, PVD, MHT, PWM, BTV in some order) with scores between 0 and 100, and `universe_size` around 100-130.
 
 - [ ] **Step 6: Commit**
 
@@ -1729,7 +1729,7 @@ with st.sidebar:
         f"{meta['universe_size']} US airports with ≥ {config.UNIVERSE_MIN_PASSENGERS:,} originating passengers in {config.YEARS[-1]}.")
     st.table(pd.Series(config.WEIGHTS, name="weight"))
     st.caption(
-        f"Data: BTS T-100 {config.YEARS[0]}–{config.YEARS[-1]} · OurAirports runways (≥ {config.MIN_RUNWAY_FT:,} ft) · "
+        f"Data: BTS T-100 {config.YEARS[0]}-{config.YEARS[-1]} · OurAirports runways (≥ {config.MIN_RUNWAY_FT:,} ft) · "
         f"FAA NAS status (live) · OpenSky ({'configured' if live.opensky_configured() else 'not configured'})")
     st.caption("Live signals are shown next to the score, never inside it. The score measures capacity-expansion "
                "opportunity, not profitability.")
@@ -1824,7 +1824,7 @@ threshold still get metrics, but no score - percentiles against the universe wou
 | growth | passengers latest / passengers prior − 1 (2025 vs 2024) | direction of travel |
 | average stage length, international share, long-haul share | distance-weighted by departures | network character; answers "how long-haul is this airport?" |
 
-### 2.3 Expansion Opportunity Score (0–100)
+### 2.3 Expansion Opportunity Score (0-100)
 
     score = 100 × Σ weightᵢ × percentile_rankᵢ        (percentiles within the universe)
 
@@ -1836,7 +1836,7 @@ threshold still get metrics, but no score - percentiles against the universe wou
 | growth | 0.15 | investment is on the future, not the present |
 
 Design decisions:
-- **Percentile rank, not min–max.** Robust to ATL/LAX outliers, and "score 85" reads as "top 15%". Percentile
+- **Percentile rank, not min-max.** Robust to ATL/LAX outliers, and "score 85" reads as "top 15%". Percentile
   ranking is invariant to monotonic transforms, so no log on passengers is needed.
 - **Missing components drop out and the remaining weights renormalize**, with a caveat in the result, instead of
   silently scoring zero.
@@ -1849,7 +1849,7 @@ Design decisions:
 ### 2.4 Unmet-demand signal (a proxy, labeled as such)
 Five flags with thresholds in `config.py`: full flights (load factor ≥ 85%), runway-constrained (pressure
 percentile ≥ 80%), growing faster than the universe median, live FAA congestion, structural constraint (curated
-note). 0–1 flags = low, 2–3 = moderate, 4–5 = high. Every result repeats: passengers who chose another airport
+note). 0-1 flags = low, 2-3 = moderate, 4-5 = high. Every result repeats: passengers who chose another airport
 or did not fly are not observable in public data.
 
 ### 2.5 Long-haul share
@@ -1863,7 +1863,7 @@ separately for passenger and all-cargo service - at Anchorage the two tell oppos
 
 | Source | What we use | How | Limits |
 |---|---|---|---|
-| BTS T-100 Segment (All Carriers) | per-segment departures, seats, passengers, distance, service class, 2024–2025 | `scripts/fetch_data.py` replays the TranStats download form (no stable URL exists); the annual aggregate is committed so reviewers need no download | 3–6 month publication lag; annual aggregation hides seasonality |
+| BTS T-100 Segment (All Carriers) | per-segment departures, seats, passengers, distance, service class, 2024-2025 | `scripts/fetch_data.py` replays the TranStats download form (no stable URL exists); the annual aggregate is committed so reviewers need no download | 3-6 month publication lag; annual aggregation hides seasonality |
 | OurAirports | runway length/status, coordinates, ICAO codes | public-domain CSV | runway count ignores spacing, taxiways, gates - see curated notes |
 | FAA NAS Status | current ground delays, ground stops, closures | public XML, no key | snapshot only, no history |
 | OpenSky Network (optional) | yesterday's departures per airport | REST + OAuth2, free account | volunteer-receiver coverage; counts are lower bounds |
@@ -1930,7 +1930,7 @@ methodology and tradeoffs.
     copy .env.example .env            # then put your free Gemini key in .env (https://aistudio.google.com/apikey)
     streamlit run app.py
 
-Data for 2024–2025 is committed, so no download is needed. To refresh it (BTS publishes with a lag):
+Data for 2024-2025 is committed, so no download is needed. To refresh it (BTS publishes with a lag):
 
     python scripts/fetch_data.py
 
@@ -2027,10 +2027,10 @@ git commit -m "Add voice input via Gemini transcription"
 
 - Spec §2 scope (universe, question types, chat, follow-ups, deliverables): Tasks 7, 9, 10, 11. Voice bonus: Task 12.
 - Spec §3 data sources: T-100 FMG + OurAirports (Task 2), FAA + OpenSky (Task 5), curated notes (Task 6).
-- Spec §4 metrics incl. NaN handling: Tasks 3–4 (`build_table`, `score` renormalization, `_caveats`).
+- Spec §4 metrics incl. NaN handling: Tasks 3-4 (`build_table`, `score` renormalization, `_caveats`).
 - Spec §5 score, percentile ranking, live-out-of-score, breakdown, unmet-demand flags/levels/sentence: Tasks 3, 4, 7.
 - Spec §6 six tools with exact signatures, `meta` + `caveats`, unknown-code error with hint, below-universe `score = None`: Task 7. Agent loop, retries, system prompt rules: Task 9. UI sidebar/expander/example buttons/clear: Task 10.
 - Spec §7 error handling (missing data message, 10 s timeouts, ICAO from OurAirports, rate-limit message): Tasks 5, 9, 10.
 - Spec §8 testing (unit on synthetic frame, integration skipped without data, manual four questions): Tasks 3, 4, 5, 7, 8, 9, 10.
 - Spec §9 four sample questions → tools: Task 9 Step 5 verifies each.
-- Spec §10–11: recorded in DESIGN.md (Task 11); open points verified before this plan was written (2025 complete; `FMG` has the country fields; SDK schema generation OK).
+- Spec §10-11: recorded in DESIGN.md (Task 11); open points verified before this plan was written (2025 complete; `FMG` has the country fields; SDK schema generation OK).
