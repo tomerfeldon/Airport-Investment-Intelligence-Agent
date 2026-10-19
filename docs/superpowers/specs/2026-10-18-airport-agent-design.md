@@ -1,4 +1,4 @@
-# Airport Investment Intelligence Agent — Design Spec
+# Airport Investment Intelligence Agent - Design Spec
 
 Date: 2026-10-18 · Status: draft for review · Scope: one-day take-home assignment
 
@@ -12,7 +12,7 @@ Stance that drives every decision below:
 
 - **Numbers come from deterministic code over public data.** The LLM never computes a metric.
 - **The LLM does two jobs:** map a question to tool calls (with arguments), and narrate the
-  tool results — including the caveats the tools return.
+  tool results - including the caveats the tools return.
 - **The score measures capacity-expansion *opportunity*, not ROI.** Public data has no CAPEX,
   land, or politics; the doc says so.
 
@@ -20,7 +20,7 @@ Stance that drives every decision below:
 
 In scope
 - Universe: US airports with ≥ 500,000 originating passengers (passenger service) in the latest
-  data year — roughly the 110 largest. Threshold lives in `config.py`.
+  data year - roughly the 110 largest. Threshold lives in `config.py`.
 - Question types: rank/filter by region or states; compare 2–5 airports; single-airport profile;
   long-haul share; unmet-demand signal; live status overlay; conversational follow-ups.
 - Chat UI (Streamlit). Voice input is an optional bonus (last step).
@@ -56,8 +56,8 @@ Rows with `DEPARTURES_PERFORMED = 0` are dropped.
 |---|---|---|
 | `passengers`, `seats`, `departures` | sums over segments with `ORIGIN = airport` | passenger |
 | `load_factor` | `passengers / seats` | passenger |
-| `departures_all` | departures of every class — runways are consumed by cargo too | all |
-| `runways` | OurAirports runways for the airport with `closed = 0` and `length_ft ≥ 5000` (`config.MIN_RUNWAY_FT`) | — |
+| `departures_all` | departures of every class - runways are consumed by cargo too | all |
+| `runways` | OurAirports runways for the airport with `closed = 0` and `length_ft ≥ 5000` (`config.MIN_RUNWAY_FT`) | - |
 | `runway_pressure` | `departures_all / 365 / runways` (departures per runway per day) | all |
 | `growth_yoy` | `passengers_latest / passengers_prior − 1` | passenger |
 | `avg_stage_mi` | `Σ(distance × departures) / Σ departures` | passenger |
@@ -76,7 +76,7 @@ score = 100 × Σ wᵢ · pctᵢ      pctᵢ = percentile rank of metricᵢ with
 | Component | Weight | Why |
 |---|---|---|
 | `runway_pressure` | 0.35 | Most direct public signal of a physical bottleneck |
-| `passengers` | 0.25 | Market size — expansion must have someone to serve |
+| `passengers` | 0.25 | Market size - expansion must have someone to serve |
 | `load_factor` | 0.25 | Full aircraft = demand airlines can't add seats for |
 | `growth_yoy` | 0.15 | Investment is on the future, not the present |
 
@@ -85,11 +85,11 @@ Decisions
   Percentile ranking is invariant to monotonic transforms, so no log on passengers is needed.
 - **Live signals are not in the score.** A ranking that changes with the weather is not a ranking.
   FAA/OpenSky appear as a separate "right now" overlay in every profile/comparison.
-- **Weights are judgment, not fitted** — there is no public ground truth for "profitable
+- **Weights are judgment, not fitted** - there is no public ground truth for "profitable
   renovation". They live in `config.WEIGHTS` and DESIGN.md says exactly this.
 
 Every score is returned with a `breakdown`: one row per component with raw value, percentile,
-weight, contribution — this is what the LLM uses to explain "why".
+weight, contribution - this is what the LLM uses to explain "why".
 
 ### Unmet-demand signal (proxy)
 
@@ -98,7 +98,7 @@ Flags, each with its threshold in config:
 `growing` (growth above universe median) · `live_congestion` (FAA lists the airport now) ·
 `structural_constraint` (curated note of type `constraint`).
 Level: 0–1 flags → low, 2–3 → moderate, 4–5 → high. The tool result always carries the sentence:
-"Proxy signal — passengers who chose another airport or didn't fly are not observable in public data."
+"Proxy signal - passengers who chose another airport or didn't fly are not observable in public data."
 
 ## 6. Architecture
 
@@ -106,32 +106,32 @@ Level: 0–1 flags → low, 2–3 → moderate, 4–5 → high. The tool result 
 Streamlit chat (app.py)
    │  user text (+ optional transcribed audio)
    ▼
-agent.py — Gemini, manual tool loop (≤ 6 iterations), returns text + tool trace
+agent.py - Gemini, manual tool loop (≤ 6 iterations), returns text + tool trace
    │  function calls / function responses
    ▼
-tools.py — 6 deterministic functions returning JSON-serializable dicts
+tools.py - 6 deterministic functions returning JSON-serializable dicts
    ├── metrics.py   pandas: load data/, build per-airport table, score, breakdown
    ├── live.py      FAA XML parser, OpenSky client (token cache, 10 s timeouts)
    └── config.py    weights, thresholds, regions, years, model name, universe threshold
-scripts/fetch_data.py — offline: TranStats + OurAirports → data/*.csv(.gz)
+scripts/fetch_data.py - offline: TranStats + OurAirports → data/*.csv(.gz)
 tests/test_metrics.py
 ```
 
 ### Tools (exact signatures; docstrings become the schema Gemini sees)
 
-1. `search_airports(query: str) -> list[dict]` — match IATA / name / city within the universe
+1. `search_airports(query: str) -> list[dict]` - match IATA / name / city within the universe
    (used when the LLM is unsure of a code: "Santa Ana" → SNA).
-2. `rank_airports(region: str = "", states: list[str] | None = None, top_n: int = 10) -> dict` —
+2. `rank_airports(region: str = "", states: list[str] | None = None, top_n: int = 10) -> dict` -
    `region` ∈ `config.REGIONS` (`new_england` = MA CT RI NH VT ME, `mid_atlantic`, `southeast`,
    `midwest`, `texas`, `mountain_west`, `west_coast`, `pacific_northwest`, `alaska_hawaii`);
    `states` for anything else. Returns filter applied, universe size, rows with score,
    key metrics and breakdown.
-3. `airport_profile(code: str) -> dict` — all metrics, breakdown, unmet-demand flags, curated
+3. `airport_profile(code: str) -> dict` - all metrics, breakdown, unmet-demand flags, curated
    note, live status.
-4. `compare_airports(codes: list[str]) -> dict` — 2–5 airports side by side, same fields.
-5. `long_haul_share(code: str, threshold_miles: int = 1500) -> dict` — passenger and all-cargo
+4. `compare_airports(codes: list[str]) -> dict` - 2–5 airports side by side, same fields.
+5. `long_haul_share(code: str, threshold_miles: int = 1500) -> dict` - passenger and all-cargo
    shares, top destinations, curated notes for the airport.
-6. `live_status(code: str) -> dict` — FAA entries for the airport; OpenSky departures yesterday.
+6. `live_status(code: str) -> dict` - FAA entries for the airport; OpenSky departures yesterday.
 
 Every result carries `meta` (`data_year`, `prior_year`, `source`, `universe_size`) and
 `caveats: list[str]`. Unknown code → `{"error": ..., "suggestions": [...]}`; the model asks the user.
@@ -201,7 +201,7 @@ An airport in T-100 but below the universe threshold gets metrics but `score = N
 - Runway count as capacity proxy: the only public, structured one; blind spots (SFO parallels,
   SNA cap) covered by labeled curated notes rather than hidden heuristics.
 - Manual tool loop vs. SDK automatic function calling: ~25 extra lines buy a visible trace and
-  controlled error handling — the trace *is* the "explain your reasoning" feature.
+  controlled error handling - the trace *is* the "explain your reasoning" feature.
 - Gemini free tier vs. paid models: free, native function calling, ≤ 3 calls per question.
 
 ## 11. Verify during implementation

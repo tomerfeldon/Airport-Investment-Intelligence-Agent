@@ -1,4 +1,4 @@
-# Design — Airport Investment Intelligence Agent
+# Design - Airport Investment Intelligence Agent
 
 ## 1. Purpose and framing
 
@@ -8,7 +8,7 @@ passenger capacity would be most valuable, and explains why with numbers the ana
 Three principles drive the design:
 
 1. **Numbers come from deterministic code over public data.** The language model never calculates a metric.
-2. **The model does two jobs:** translate a question into tool calls, and narrate the tool results — including
+2. **The model does two jobs:** translate a question into tool calls, and narrate the tool results - including
    the caveats the tools return.
 3. **The score measures capacity-expansion *opportunity*, not profitability.** Public data carries no CAPEX,
    land, financing or politics, so the agent says so in every answer.
@@ -19,7 +19,7 @@ Three principles drive the design:
 US airports with at least 500,000 originating passengers (passenger service) in the latest complete T-100
 year (2025): 144 airports. This keeps the airports where a terminal or airfield program is plausible, including
 the smaller New England hubs (PVD, PWM, BTV, HVN, MHT), while excluding general-aviation noise. Airports
-below the threshold still get metrics, but no score — percentiles against the universe would be misleading.
+below the threshold still get metrics, but no score - percentiles against the universe would be misleading.
 
 ### 2.2 Metrics (per airport, latest year)
 
@@ -27,9 +27,9 @@ below the threshold still get metrics, but no score — percentiles against the 
 |---|---|---|
 | passengers, seats, departures | sums over segments departing the airport, passenger service (T-100 classes F + L) | demand volume |
 | load factor | passengers / seats | full aircraft = demand airlines cannot add seats for |
-| departures (all classes) | including all-cargo (G + P) — freighters consume runway slots too | runway demand |
+| departures (all classes) | including all-cargo (G + P) - freighters consume runway slots too | runway demand |
 | runways | OurAirports runways that are open and ≥ 5,000 ft | commercial-capable physical capacity |
-| runway pressure | departures (all classes) / 365 / runways | departures per runway per day — the bottleneck proxy |
+| runway pressure | departures (all classes) / 365 / runways | departures per runway per day - the bottleneck proxy |
 | growth | passengers latest / passengers prior − 1 (2025 vs 2024) | direction of travel |
 | average stage length, international share, long-haul share | distance-weighted by departures | network character; answers "how long-haul is this airport?" |
 
@@ -40,7 +40,7 @@ below the threshold still get metrics, but no score — percentiles against the 
 | Component | Weight | Rationale |
 |---|---|---|
 | runway pressure | 0.35 | the most direct public signal of a physical bottleneck |
-| passengers | 0.25 | market size — expansion needs someone to serve |
+| passengers | 0.25 | market size - expansion needs someone to serve |
 | load factor | 0.25 | full aircraft mean demand is being rationed |
 | growth | 0.15 | investment is on the future, not the present |
 
@@ -63,9 +63,9 @@ or did not fly are not observable in public data.
 
 ### 2.5 Long-haul share
 Share of departures on nonstop segments of at least 1,500 statute miles (configurable per question), reported
-separately for passenger and all-cargo service — at Anchorage the two tell opposite stories.
+separately for passenger and all-cargo service - at Anchorage the two tell opposite stories.
 
-### 2.6 Worked example — New England, generated 2026-10-18 from 2025 data
+### 2.6 Worked example - New England, generated 2026-10-18 from 2025 data
 
 | Airport | Score | Passengers | Load factor | Runways | Dep./runway/day | Growth YoY |
 |---|---|---|---|---|---|---|
@@ -79,19 +79,19 @@ separately for passenger and all-cargo service — at Anchorage the two tell opp
 
 Reading it: BOS leads on volume and runway pressure; BDL and PVD are the second tier; the growth component is
 what lifts HVN (New Haven) into view despite its size. Nationally the top five are ORD 87.5, SFO 86.5, ATL 85.7,
-SEA 84.4 and DEN 82.5 — runway pressure and load factor, not raw size, separate them.
+SEA 84.4 and DEN 82.5 - runway pressure and load factor, not raw size, separate them.
 
 ## 3. Data sources and their limits
 
 | Source | What we use | How | Limits |
 |---|---|---|---|
 | BTS T-100 Segment (All Carriers) | per-segment departures, seats, passengers, distance, service class, 2024–2025 | `scripts/fetch_data.py` replays the TranStats download form (no stable URL exists); the annual aggregate (93k rows, 1.1 MB) is committed so reviewers need no download | 3–6 month publication lag; annual aggregation hides seasonality |
-| OurAirports | runway length/status, coordinates, ICAO codes | public-domain CSV | runway count ignores spacing, taxiways, gates — see curated notes |
+| OurAirports | runway length/status, coordinates, ICAO codes | public-domain CSV | runway count ignores spacing, taxiways, gates - see curated notes |
 | FAA NAS Status | current ground delays, ground stops, closures | public XML, no key | snapshot only, no history |
 | OpenSky Network (optional) | yesterday's departures per airport | REST + OAuth2, free account | volunteer-receiver coverage; counts are lower bounds |
 | Curated notes | four verified structural facts (SNA passenger cap, SFO runway spacing, DCA slots/perimeter, ANC cargo stop) | hand-written JSON with source URLs, shown as "curated note" | small by design; a reviewer can see exactly what human knowledge was injected |
 
-## 4. Where AI is used — and where it is deliberately not
+## 4. Where AI is used - and where it is deliberately not
 
 **Used:** Gemini (`gemini-3.8-flash`, free tier, via `google-genai`) maps the question to one of six tools and
 their arguments, narrates the result, keeps conversational context for follow-ups, and (bonus) transcribes
@@ -115,7 +115,7 @@ temperature 0.2.
 - **Runway count as the capacity proxy.** The only public, structured one. Its blind spots (SFO's 750 ft runway
   spacing, SNA's legal cap) are covered by labeled curated notes rather than hidden heuristics.
 - **Manual tool loop vs. SDK automatic function calling.** About 25 extra lines buy a visible trace and controlled
-  error handling — the trace is the "explain your reasoning" feature.
+  error handling - the trace is the "explain your reasoning" feature.
 - **Free Gemini tier.** No cost, native function calling; a question costs at most three model calls. Quotas
   are per model and small (5 requests/minute and 20/day for `gemini-3.8-flash` on 2026-10-19), so the loop
   falls back through `gemini-3.5-flash-lite` and `gemini-2.5-flash` and the UI shows which model answered.

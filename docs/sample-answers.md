@@ -1,4 +1,4 @@
-# Sample answers — the four assignment questions
+# Sample answers - the four assignment questions
 
 Generated 2026-10-19 with `gemini-3.8-flash` through `python agent.py "<question>"`. The `[tool]` lines are the
 deterministic calls the model made; everything numeric in the answers comes from them. FAA "live status" lines
@@ -141,7 +141,7 @@ San Francisco International Airport (SFO) exhibits a **moderate** unmet-demand s
 | **Passengers** | 26,488,386 | 0.938 | 0.25 | 23.4 |
 | **Load Factor** | 82.3% | 0.868 | 0.25 | 21.7 |
 | **YoY Passenger Growth** | 4.7% | 0.722 | 0.15 | 10.8 |
-| **Total Score** | — | — | — | **86.5** |
+| **Total Score** | - | - | - | **86.5** |
 
 #### Unmet-Demand Indicators
 

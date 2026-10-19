@@ -1,4 +1,4 @@
-# Airport Investment Intelligence Agent — Implementation Plan
+# Airport Investment Intelligence Agent - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.12, pandas, requests, streamlit, google-genai (2.31+), python-dotenv, pytest. Model `gemini-3.8-flash` (free tier, stable).
 
-**Spec:** `docs/superpowers/specs/2026-10-18-airport-agent-design.md`. Deviations from the spec, decided while verifying: (1) tool results expose ready-made percentage fields (`*_pct`) so the model never does arithmetic; (2) the OpenSky overlay reports yesterday's departure count and top destinations only — the live long-haul share needs world-wide airport coordinates and was cut (YAGNI); (3) airport state comes from T-100 `ORIGIN_STATE_ABR`, not OurAirports `iso_region`.
+**Spec:** `docs/superpowers/specs/2026-10-18-airport-agent-design.md`. Deviations from the spec, decided while verifying: (1) tool results expose ready-made percentage fields (`*_pct`) so the model never does arithmetic; (2) the OpenSky overlay reports yesterday's departure count and top destinations only - the live long-haul share needs world-wide airport coordinates and was cut (YAGNI); (3) airport state comes from T-100 `ORIGIN_STATE_ABR`, not OurAirports `iso_region`.
 
 ## Global Constraints
 
@@ -118,7 +118,7 @@ def test_service_classes_do_not_overlap():
 - [ ] **Step 4: Run it to verify it fails**
 
 Run: `.venv/Scripts/python.exe -m pytest tests/test_config.py -q`
-Expected: FAIL — `ModuleNotFoundError: No module named 'config'`
+Expected: FAIL - `ModuleNotFoundError: No module named 'config'`
 
 - [ ] **Step 5: Write config.py**
 
@@ -140,7 +140,7 @@ CARGO_CLASSES = {"G", "P"}                # scheduled (G) and non-scheduled (P) 
 
 # Expansion Opportunity Score = 100 * sum(weight * percentile rank within the universe). Must sum to 1.0.
 WEIGHTS = {
-    "runway_pressure": 0.35,              # departures per runway per day — the physical bottleneck
+    "runway_pressure": 0.35,              # departures per runway per day - the physical bottleneck
     "passengers": 0.25,                   # market size
     "load_factor": 0.25,                  # full aircraft = demand airlines cannot add seats for
     "growth_yoy": 0.15,                   # direction of travel
@@ -176,7 +176,7 @@ git commit -m "Add project skeleton and config"
 
 ---
 
-### Task 2: Data pipeline — `scripts/fetch_data.py` and committed data
+### Task 2: Data pipeline - `scripts/fetch_data.py` and committed data
 
 **Files:**
 - Create: `scripts/fetch_data.py`, `tests/test_data_files.py`
@@ -186,7 +186,7 @@ git commit -m "Add project skeleton and config"
 - Consumes: `config.YEARS`, `config.DATA_DIR`
 - Produces: `data/t100_od_annual.csv.gz` with columns `year, origin, origin_state, dest, dest_country, svc_class, departures, seats, passengers, freight, distance`; `data/airports_us.csv` with `ident, icao_code, iata_code, name, municipality, iso_region, latitude_deg, longitude_deg, type`; `data/runways_us.csv` with `airport_ident, length_ft, width_ft, surface, closed, le_ident, he_ident`
 
-Background for the implementer: BTS TranStats has no download URL — the "Download" button posts an ASP.NET WebForms form. The POST works from a script only when (a) the session cookie from the GET is sent back and (b) the hidden `__VIEWSTATE`, `__VIEWSTATEGENERATOR`, `__EVENTVALIDATION` values are echoed. Table code `FMG` = "T-100 Segment (All Carriers)" = domestic + international, US + foreign carriers. Verified 2026-10-18: 2025 is complete (12 months, 571,205 rows, ~7 MB zip).
+Background for the implementer: BTS TranStats has no download URL - the "Download" button posts an ASP.NET WebForms form. The POST works from a script only when (a) the session cookie from the GET is sent back and (b) the hidden `__VIEWSTATE`, `__VIEWSTATEGENERATOR`, `__EVENTVALIDATION` values are echoed. Table code `FMG` = "T-100 Segment (All Carriers)" = domestic + international, US + foreign carriers. Verified 2026-10-18: 2025 is complete (12 months, 571,205 rows, ~7 MB zip).
 
 - [ ] **Step 1: Write the failing data-file test**
 
@@ -226,7 +226,7 @@ def test_airports_and_runways_files():
     assert {"length_ft", "closed"} <= set(rw.columns)
 ```
 
-- [ ] **Step 2: Run it — it must skip (no data yet)**
+- [ ] **Step 2: Run it - it must skip (no data yet)**
 
 Run: `.venv/Scripts/python.exe -m pytest tests/test_data_files.py -q`
 Expected: `2 skipped`
@@ -350,7 +350,7 @@ git commit -m "Add data pipeline and committed BTS T-100 / OurAirports extracts"
 
 ---
 
-### Task 3: `metrics.py` core — per-airport table and score
+### Task 3: `metrics.py` core - per-airport table and score
 
 **Files:**
 - Create: `metrics.py`, `tests/conftest.py`, `tests/test_metrics.py`
@@ -467,7 +467,7 @@ def test_missing_runway_data_renormalizes_weights(synthetic):
 - [ ] **Step 3: Run tests to verify they fail**
 
 Run: `.venv/Scripts/python.exe -m pytest tests/test_metrics.py -q`
-Expected: FAIL — `ModuleNotFoundError: No module named 'metrics'`
+Expected: FAIL - `ModuleNotFoundError: No module named 'metrics'`
 
 - [ ] **Step 4: Write metrics.py (core)**
 
@@ -573,7 +573,7 @@ git commit -m "Add per-airport metrics table and Expansion Opportunity Score"
 
 ---
 
-### Task 4: `metrics.py` — breakdown, long-haul, unmet demand, helpers
+### Task 4: `metrics.py` - breakdown, long-haul, unmet demand, helpers
 
 **Files:**
 - Modify: `metrics.py` (append)
@@ -585,7 +585,7 @@ git commit -m "Add per-airport metrics table and Expansion Opportunity Score"
   - `metrics.long_haul(od, code: str, year: int, threshold: int) -> dict` with keys `airport, year, threshold_miles, passenger_service, all_cargo, definition`; each service dict has `departures, long_haul_departures, long_haul_share_pct, top_long_haul_destinations`
   - `metrics.unmet_demand(row, notes: dict, faa_entries: list, median_growth: float) -> dict` with keys `flags, flags_true, level, thresholds, note`
   - `metrics.select_states(region: str, states: list[str] | None) -> list[str]` (raises `ValueError` on unknown region)
-  - `metrics.jsonable(x)` — recursive numpy/NaN → JSON-safe
+  - `metrics.jsonable(x)` - recursive numpy/NaN → JSON-safe
 
 - [ ] **Step 1: Append the failing tests**
 
@@ -755,7 +755,7 @@ git commit -m "Add score breakdown, long-haul share, unmet-demand signal and JSO
 
 ---
 
-### Task 5: `live.py` — FAA NAS status and OpenSky
+### Task 5: `live.py` - FAA NAS status and OpenSky
 
 **Files:**
 - Create: `live.py`, `tests/test_live.py`
@@ -827,7 +827,7 @@ def test_opensky_rejects_missing_icao(monkeypatch):
 - [ ] **Step 2: Run to verify they fail**
 
 Run: `.venv/Scripts/python.exe -m pytest tests/test_live.py -q`
-Expected: FAIL — `ModuleNotFoundError: No module named 'live'`
+Expected: FAIL - `ModuleNotFoundError: No module named 'live'`
 
 - [ ] **Step 3: Write live.py**
 
@@ -982,7 +982,7 @@ def test_airport_notes_schema():
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `.venv/Scripts/python.exe -m pytest tests/test_data_files.py -q -k notes`
-Expected: FAIL — `FileNotFoundError`
+Expected: FAIL - `FileNotFoundError`
 
 - [ ] **Step 3: Write the notes file**
 
@@ -1038,14 +1038,14 @@ git commit -m "Add curated airport notes with sources"
 
 ---
 
-### Task 7: `tools.py` — the six tools
+### Task 7: `tools.py` - the six tools
 
 **Files:**
 - Create: `tools.py`, `tests/test_tools.py`
 
 **Interfaces:**
 - Consumes: `metrics.load, build_table, breakdown, long_haul, unmet_demand, select_states, jsonable`; `live.faa_status, opensky_departures`; `config.*`
-- Produces (exact signatures — the docstrings become the schema Gemini sees, so keep them accurate):
+- Produces (exact signatures - the docstrings become the schema Gemini sees, so keep them accurate):
   - `search_airports(query: str) -> dict`
   - `rank_airports(region: str = "", states: list[str] | None = None, top_n: int = 10) -> dict`
   - `airport_profile(code: str) -> dict`
@@ -1135,7 +1135,7 @@ def test_search_and_live_status(fake_table):
 - [ ] **Step 2: Run to verify they fail**
 
 Run: `.venv/Scripts/python.exe -m pytest tests/test_tools.py -q`
-Expected: FAIL — `ModuleNotFoundError: No module named 'tools'`
+Expected: FAIL - `ModuleNotFoundError: No module named 'tools'`
 
 - [ ] **Step 3: Write tools.py**
 
@@ -1366,7 +1366,7 @@ git commit -m "Add the six deterministic agent tools"
 **Interfaces:**
 - Consumes: `tools.*`, `metrics.*`, real `data/`
 
-These assert things that must hold for the data to be trustworthy — not the ranking order, which is a judgment the score encodes.
+These assert things that must hold for the data to be trustworthy - not the ranking order, which is a judgment the score encodes.
 
 - [ ] **Step 1: Write the tests**
 
@@ -1446,7 +1446,7 @@ git commit -m "Add real-data sanity tests"
 
 ---
 
-### Task 9: `agent.py` — Gemini tool loop and CLI smoke test
+### Task 9: `agent.py` - Gemini tool loop and CLI smoke test
 
 **Files:**
 - Create: `agent.py`, `tests/test_agent.py`
@@ -1455,7 +1455,7 @@ git commit -m "Add real-data sanity tests"
 - Consumes: `tools.search_airports, rank_airports, airport_profile, compare_airports, long_haul_share, live_status`; `config.MODEL`
 - Produces:
   - `agent.TOOLS: list[callable]`, `agent.SYSTEM_PROMPT: str`
-  - `agent.ask(history: list, text: str, max_iterations: int = 6) -> tuple[str, list[dict], list]` — `(answer, trace, new_history)`; trace items `{"tool": str, "args": dict, "result": dict}`
+  - `agent.ask(history: list, text: str, max_iterations: int = 6) -> tuple[str, list[dict], list]` - `(answer, trace, new_history)`; trace items `{"tool": str, "args": dict, "result": dict}`
   - `agent.transcribe(audio_bytes: bytes, mime_type: str) -> str`
   - `python agent.py "<question>"` prints trace and answer
 
@@ -1519,7 +1519,7 @@ def test_iteration_cap(monkeypatch):
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `.venv/Scripts/python.exe -m pytest tests/test_agent.py -q`
-Expected: FAIL — `ModuleNotFoundError: No module named 'agent'`
+Expected: FAIL - `ModuleNotFoundError: No module named 'agent'`
 
 - [ ] **Step 3: Write agent.py**
 
@@ -1655,7 +1655,7 @@ git commit -m "Add Gemini tool-calling agent loop and CLI"
 
 ---
 
-### Task 10: `app.py` — Streamlit chat
+### Task 10: `app.py` - Streamlit chat
 
 **Files:**
 - Create: `app.py`
@@ -1789,7 +1789,7 @@ git commit -m "Add Streamlit chat UI with tool trace"
 - [ ] **Step 1: Write DESIGN.md**
 
 ```markdown
-# Design — Airport Investment Intelligence Agent
+# Design - Airport Investment Intelligence Agent
 
 ## 1. Purpose and framing
 
@@ -1799,7 +1799,7 @@ passenger capacity would be most valuable, and explains why with numbers the ana
 Three principles drive the design:
 
 1. **Numbers come from deterministic code over public data.** The language model never calculates a metric.
-2. **The model does two jobs:** translate a question into tool calls, and narrate the tool results — including
+2. **The model does two jobs:** translate a question into tool calls, and narrate the tool results - including
    the caveats the tools return.
 3. **The score measures capacity-expansion *opportunity*, not profitability.** Public data carries no CAPEX,
    land, financing or politics, so the agent says so in every answer.
@@ -1810,7 +1810,7 @@ Three principles drive the design:
 US airports with at least 500,000 originating passengers (passenger service) in the latest complete T-100
 year (2025). This keeps the ~110 airports where a terminal or airfield program is plausible, including the
 smaller New England hubs (PVD, MHT, PWM, BTV), while excluding general-aviation noise. Airports below the
-threshold still get metrics, but no score — percentiles against the universe would be misleading.
+threshold still get metrics, but no score - percentiles against the universe would be misleading.
 
 ### 2.2 Metrics (per airport, latest year)
 
@@ -1818,9 +1818,9 @@ threshold still get metrics, but no score — percentiles against the universe w
 |---|---|---|
 | passengers, seats, departures | sums over segments departing the airport, passenger service (T-100 classes F + L) | demand volume |
 | load factor | passengers / seats | full aircraft = demand airlines cannot add seats for |
-| departures (all classes) | including all-cargo (G + P) — freighters consume runway slots too | runway demand |
+| departures (all classes) | including all-cargo (G + P) - freighters consume runway slots too | runway demand |
 | runways | OurAirports runways that are open and ≥ 5,000 ft | commercial-capable physical capacity |
-| runway pressure | departures (all classes) / 365 / runways | departures per runway per day — the bottleneck proxy |
+| runway pressure | departures (all classes) / 365 / runways | departures per runway per day - the bottleneck proxy |
 | growth | passengers latest / passengers prior − 1 (2025 vs 2024) | direction of travel |
 | average stage length, international share, long-haul share | distance-weighted by departures | network character; answers "how long-haul is this airport?" |
 
@@ -1831,7 +1831,7 @@ threshold still get metrics, but no score — percentiles against the universe w
 | Component | Weight | Rationale |
 |---|---|---|
 | runway pressure | 0.35 | the most direct public signal of a physical bottleneck |
-| passengers | 0.25 | market size — expansion needs someone to serve |
+| passengers | 0.25 | market size - expansion needs someone to serve |
 | load factor | 0.25 | full aircraft mean demand is being rationed |
 | growth | 0.15 | investment is on the future, not the present |
 
@@ -1854,7 +1854,7 @@ or did not fly are not observable in public data.
 
 ### 2.5 Long-haul share
 Share of departures on nonstop segments of at least 1,500 statute miles (configurable per question), reported
-separately for passenger and all-cargo service — at Anchorage the two tell opposite stories.
+separately for passenger and all-cargo service - at Anchorage the two tell opposite stories.
 
 ### 2.6 Worked example
 (Paste the New England ranking table from the app here, with the date it was generated.)
@@ -1864,12 +1864,12 @@ separately for passenger and all-cargo service — at Anchorage the two tell opp
 | Source | What we use | How | Limits |
 |---|---|---|---|
 | BTS T-100 Segment (All Carriers) | per-segment departures, seats, passengers, distance, service class, 2024–2025 | `scripts/fetch_data.py` replays the TranStats download form (no stable URL exists); the annual aggregate is committed so reviewers need no download | 3–6 month publication lag; annual aggregation hides seasonality |
-| OurAirports | runway length/status, coordinates, ICAO codes | public-domain CSV | runway count ignores spacing, taxiways, gates — see curated notes |
+| OurAirports | runway length/status, coordinates, ICAO codes | public-domain CSV | runway count ignores spacing, taxiways, gates - see curated notes |
 | FAA NAS Status | current ground delays, ground stops, closures | public XML, no key | snapshot only, no history |
 | OpenSky Network (optional) | yesterday's departures per airport | REST + OAuth2, free account | volunteer-receiver coverage; counts are lower bounds |
 | Curated notes | four verified structural facts (SNA cap, SFO runway spacing, DCA slots/perimeter, ANC cargo stop) | hand-written JSON with source URLs, shown as "curated note" | small by design; a reviewer can see exactly what human knowledge was injected |
 
-## 4. Where AI is used — and where it is deliberately not
+## 4. Where AI is used - and where it is deliberately not
 
 **Used:** Gemini (`gemini-3.8-flash`, free tier, via `google-genai`) maps the question to one of six tools and
 their arguments, narrates the result, keeps conversational context for follow-ups, and (bonus) transcribes
@@ -1892,7 +1892,7 @@ temperature 0.2.
 - **Runway count as the capacity proxy.** The only public, structured one. Its blind spots (SFO's 750 ft runway
   spacing, SNA's legal cap) are covered by labeled curated notes rather than hidden heuristics.
 - **Manual tool loop vs. SDK automatic function calling.** About 25 extra lines buy a visible trace and controlled
-  error handling — the trace is the "explain your reasoning" feature.
+  error handling - the trace is the "explain your reasoning" feature.
 - **Free Gemini tier.** No cost, native function calling; a question costs at most three model calls.
 
 ## 6. How assumptions, uncertainty and scope reach the user
