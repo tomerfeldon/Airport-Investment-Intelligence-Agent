@@ -8,3 +8,4 @@ data/raw/
 .pytest_cache/
 .playwright-mcp/
 *.zip
+notes/
