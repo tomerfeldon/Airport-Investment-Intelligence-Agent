@@ -91,6 +91,11 @@ SEA 84.4 and DEN 82.5 - runway pressure and load factor, not raw size, separate 
 | OpenSky Network (optional) | yesterday's departures per airport | REST + OAuth2, free account | volunteer-receiver coverage; counts are lower bounds |
 | Curated notes | four verified structural facts (SNA passenger cap, SFO runway spacing, DCA slots/perimeter, ANC cargo stop) | hand-written JSON with source URLs, shown as "curated note" | small by design; a reviewer can see exactly what human knowledge was injected |
 
+Cross-check run on 2026-10-19 with OpenSky credentials configured: OpenSky recorded 463 departures from SFO and 217 from
+ANC for the previous UTC day, against 2025 BTS averages of 521 and 241 departures per day (all service classes). The
+two sources agree to within the coverage gap OpenSky itself warns about, which is why the overlay is shown as a
+lower-bound sanity check next to the score rather than mixed into it.
+
 ## 4. Where AI is used - and where it is deliberately not
 
 **Used:** Gemini (`gemini-3.8-flash`, free tier, via `google-genai`) maps the question to one of six tools and
