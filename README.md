@@ -5,6 +5,10 @@ Deterministic scoring over BTS T-100 traffic and OurAirports runway data, a live
 overlay, and Gemini used only to route questions to tools and explain the results. See `DESIGN.md` for the
 methodology and tradeoffs.
 
+The agent itself is Markdown: `agent/SYSTEM.md` (prompt and rules), `agent/tools.md` (the tool descriptions the
+model sees), `agent/methodology.md`, `agent/caveats.md`, `agent/examples.md` and the curated facts in
+`data/airport_notes.md`. Python loads them at runtime and only computes.
+
 ## Quick start
 
     python -m venv .venv
@@ -57,6 +61,8 @@ checks the committed data for plausibility (universe size, SFO load factor, SNA 
 
 ## Layout
 
+    agent/                 the agent definition in Markdown: system prompt, tool descriptions, methodology, caveats, examples
+    agentfiles.py          loads agent/*.md and data/airport_notes.md
     app.py                 Streamlit chat
     agent.py               Gemini tool loop (manual, with trace)
     tools.py               the six deterministic tools
@@ -64,6 +70,6 @@ checks the committed data for plausibility (universe size, SFO load factor, SNA 
     live.py                FAA NAS status, OpenSky
     config.py              every tunable
     scripts/fetch_data.py  builds data/ from BTS TranStats + OurAirports
-    data/                  committed extracts + curated notes
+    data/                  committed extracts + curated notes (airport_notes.md)
     tests/
     DESIGN.md              scoring methodology, tradeoffs, where AI is used

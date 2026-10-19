@@ -6,20 +6,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-import agent    # noqa: E402  (after load_dotenv so GEMINI_API_KEY is visible)
-import config   # noqa: E402
-import live     # noqa: E402
-import tools    # noqa: E402
+import agent        # noqa: E402  (after load_dotenv so GEMINI_API_KEY is visible)
+import agentfiles   # noqa: E402
+import config       # noqa: E402
+import live         # noqa: E402
+import tools        # noqa: E402
 
 st.set_page_config(page_title="Airport Investment Intelligence", page_icon="✈️", layout="wide")
 st.markdown("<style>[data-testid='stChatMessageContent'] :is(p, li, td, th, h1, h2, h3, h4) {unicode-bidi: plaintext; text-align: start;}</style>", unsafe_allow_html=True)   # Hebrew answers read right-to-left, English stays left-to-right
 
-EXAMPLES = [
-    "Which airports in New England are strong candidates for terminal expansion?",
-    "Compare LA and Santa Ana airport congestion levels.",
-    "What is the percentage of long haul flights out of Anchorage airport?",
-    "What is the unmet flight demand in SFO airport and why?",
-]
+EXAMPLES = agentfiles.bullets(agentfiles.read("examples.md"))
 
 if not os.environ.get("GEMINI_API_KEY"):
     st.error("GEMINI_API_KEY is not set. Copy .env.example to .env and add a free key from https://aistudio.google.com/apikey")
@@ -66,16 +62,10 @@ def render_trace(trace: list[dict]) -> None:
 
 with st.sidebar:
     st.header("How the score works")
-    meta = tools._meta(table)
-    st.markdown(
-        f"**Expansion Opportunity Score** = 100 × Σ weight × percentile rank, computed within "
-        f"{meta['universe_size']} US airports with ≥ {config.UNIVERSE_MIN_PASSENGERS:,} originating passengers in {config.YEARS[-1]}.")
-    st.markdown("| component | weight |\n|---|---|\n" + "\n".join(f"| {k} | {v:.2f} |" for k, v in config.WEIGHTS.items()))
+    st.markdown(tools.methodology(table)["text"])   # the same text the model receives, from agent/methodology.md
     st.caption(
-        f"Data: BTS T-100 {config.YEARS[0]}-{config.YEARS[-1]} · OurAirports runways (≥ {config.MIN_RUNWAY_FT:,} ft) · "
+        f"Data: BTS T-100 {config.YEARS[0]}-{config.YEARS[-1]} · OurAirports runways · "
         f"FAA NAS status (live) · OpenSky ({'configured' if live.opensky_configured() else 'not configured'})")
-    st.caption("Live signals are shown next to the score, never inside it. The score measures capacity-expansion "
-               "opportunity, not profitability.")
     st.subheader("Try")
     for q in EXAMPLES:
         if st.button(q):

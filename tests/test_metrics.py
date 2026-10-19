@@ -79,7 +79,6 @@ def test_unmet_demand_flags_and_levels(synthetic):
     assert low["level"] == "low"
     high = metrics.unmet_demand(t.loc["BBB"], notes, [{"type": "Ground Delay Programs"}], median_growth)
     assert high["flags_true"] == 4 and high["level"] == "high"
-    assert "not observable" in high["note"]
 
 
 def test_select_states():

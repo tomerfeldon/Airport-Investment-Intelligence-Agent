@@ -1,7 +1,9 @@
 """The six deterministic tools the model may call.
 
-Every function returns a JSON-serializable dict, never raises, and carries `meta` + `caveats`
-so the model can cite data year/source and state limits. Docstrings are the schema Gemini sees.
+Every function returns a JSON-serializable dict, never raises, and carries `meta` + `caveats` so the model
+can cite data year/source and state limits. This file only computes: the descriptions Gemini sees live in
+agent/tools.md (applied to the functions at the bottom) and every sentence attached to a result in
+agent/caveats.md.
 """
 from __future__ import annotations
 
@@ -9,9 +11,12 @@ import functools
 
 import pandas as pd
 
+import agentfiles
 import config
 import live
 import metrics
+
+_c = agentfiles.caveat
 
 
 @functools.lru_cache(maxsize=1)
@@ -28,18 +33,13 @@ def _meta(t: pd.DataFrame) -> dict:
     }
 
 
-def _methodology() -> dict:
-    return {
-        "score": "Expansion Opportunity Score = 100 x sum(weight_i x percentile_rank_i); percentiles are taken "
-                 "within the universe, so 85 means roughly top 15%",
-        "weights": config.WEIGHTS,
-        "universe": f"US airports with >= {config.UNIVERSE_MIN_PASSENGERS:,} originating passengers "
-                    f"(passenger service, T-100 classes F+L) in {config.YEARS[-1]}",
-        "runway_rule": f"runways counted when open and >= {config.MIN_RUNWAY_FT} ft",
-        "runway_pressure": "departures of all service classes / 365 / counted runways",
-        "not_in_score": "live FAA/OpenSky status (snapshot) and curated notes",
-        "measures": "capacity-expansion opportunity, not profitability or ROI",
-    }
+def methodology(t: pd.DataFrame) -> dict:
+    """The score explained, rendered from agent/methodology.md. The same text goes to the model and to the sidebar."""
+    weights_table = "| component | weight |\n|---|---|\n" + "\n".join(f"| {k} | {v:.2f} |" for k, v in config.WEIGHTS.items())
+    text = agentfiles.render(agentfiles.read("methodology.md"), universe_size=int(t.in_universe.sum()),
+                             universe_min_passengers=config.UNIVERSE_MIN_PASSENGERS, data_year=config.YEARS[-1],
+                             min_runway_ft=config.MIN_RUNWAY_FT, weights_table=weights_table)
+    return {"text": text, "weights": config.WEIGHTS}
 
 
 def _pct(x) -> float | None:
@@ -49,11 +49,11 @@ def _pct(x) -> float | None:
 def _caveats(r: pd.Series) -> list[str]:
     c = []
     if pd.isna(r["runways"]):
-        c.append("No runway data matched in OurAirports; runway pressure excluded and weights renormalized.")
+        c.append(_c("no_runways"))
     if pd.isna(r["growth_yoy"]):
-        c.append(f"No {config.YEARS[0]} data; growth excluded and weights renormalized.")
+        c.append(_c("no_prior_year", prior_year=config.YEARS[0]))
     if not r["in_universe"]:
-        c.append(f"Below the universe threshold ({config.UNIVERSE_MIN_PASSENGERS:,} passengers); no score or percentiles.")
+        c.append(_c("below_universe", universe_min_passengers=config.UNIVERSE_MIN_PASSENGERS))
     return c
 
 
@@ -73,12 +73,9 @@ def _row_summary(r: pd.Series, notes: dict) -> dict:
     }
 
 
-def search_airports(query: str) -> dict:
-    """Find airports in the ranking universe by IATA code, airport name or city. Use when unsure of a code.
+# The six tools. Their docstrings are assigned from agent/tools.md below.
 
-    Args:
-        query: free text such as "Santa Ana", "Logan", "SNA"
-    """
+def search_airports(query: str) -> dict:
     t, _ = _table()
     q = query.strip().lower()
     u = t[t.in_universe]
@@ -87,17 +84,10 @@ def search_airports(query: str) -> dict:
             | u["municipality"].fillna("").str.lower().str.contains(q, regex=False)]
     matches = [{"code": c, "name": r["name"], "city": r["municipality"], "state": r["state"]} for c, r in hit.head(10).iterrows()]
     return metrics.jsonable({"query": query, "matches": matches, "meta": _meta(t),
-                             "hint": "" if matches else "no match in the universe; the airport may be too small or spelled differently"})
+                             "hint": "" if matches else _c("search_no_match")})
 
 
 def rank_airports(region: str = "", states: list[str] | None = None, top_n: int = 10) -> dict:
-    """Rank US airports by Expansion Opportunity Score (0-100), optionally filtered to a region or states.
-
-    Args:
-        region: new_england, mid_atlantic, southeast, midwest, texas, mountain_west, west_coast, pacific_northwest or alaska_hawaii; empty string for the whole US
-        states: two-letter state codes such as ["MA", "CT"]; used only when region is empty
-        top_n: number of airports to return (1-50)
-    """
     t, d = _table()
     try:
         sel = metrics.select_states(region, states)
@@ -112,18 +102,12 @@ def rank_airports(region: str = "", states: list[str] | None = None, top_n: int 
         "filter": {"region": region or None, "states": sel or None},
         "airports_matching_filter": matching,
         "ranking": [_row_summary(r, d["notes"]) for _, r in u.iterrows()],
-        "methodology": _methodology(), "meta": _meta(t),
-        "caveats": ["Score measures capacity-expansion opportunity from public traffic and runway data; it is not an ROI estimate.",
-                    "Weights are analyst judgment, not fitted to outcomes."],
+        "methodology": methodology(t), "meta": _meta(t),
+        "caveats": [_c("not_roi"), _c("weights_judgment")],
     })
 
 
 def airport_profile(code: str) -> dict:
-    """Full profile of one airport: metrics, score breakdown, unmet-demand signal, curated notes and live status.
-
-    Args:
-        code: IATA code such as "SFO"
-    """
     t, d = _table()
     code = code.strip().upper()
     if code not in t.index:
@@ -131,19 +115,23 @@ def airport_profile(code: str) -> dict:
     r = t.loc[code]
     out = _row_summary(r, d["notes"])
     out["live"] = live_status(code)
-    out["unmet_demand"] = metrics.unmet_demand(r, d["notes"], out["live"]["faa"]["entries"],
-                                               float(t[t.in_universe].growth_yoy.median()))
-    out["methodology"] = _methodology()
+    median = float(t[t.in_universe].growth_yoy.median())
+    unmet = metrics.unmet_demand(r, d["notes"], out["live"]["faa"]["entries"], median)
+    unmet["thresholds"] = {
+        "full_flights": _c("unmet_full_flights", load_factor=config.UNMET["load_factor"]),
+        "runway_constrained": _c("unmet_runway_constrained", pressure_pct=config.UNMET["pressure_pct"]),
+        "growing": _c("unmet_growing", median_growth=median),
+        "live_congestion": _c("unmet_live_congestion"),
+        "structural_constraint": _c("unmet_structural"),
+    }
+    unmet["note"] = _c("unmet_proxy")
+    out["unmet_demand"] = unmet
+    out["methodology"] = methodology(t)
     out["meta"] = _meta(t)
     return metrics.jsonable(out)
 
 
 def compare_airports(codes: list[str]) -> dict:
-    """Compare 2-5 airports side by side on every metric, score breakdown, unmet-demand signal and live status.
-
-    Args:
-        codes: IATA codes such as ["LAX", "SNA"]
-    """
     codes = [c.strip().upper() for c in codes]
     if not 2 <= len(codes) <= 5:
         return {"error": "give between 2 and 5 airport codes"}
@@ -155,36 +143,25 @@ def compare_airports(codes: list[str]) -> dict:
     for p in profiles:
         p.pop("methodology", None)
         p.pop("meta", None)
-    return metrics.jsonable({"airports": profiles, "methodology": _methodology(), "meta": _meta(t),
-                             "caveats": ["Higher departures per runway per day = more congested relative to physical capacity.",
-                                         "Live status is a snapshot at query time and is not part of the score."]})
+    return metrics.jsonable({"airports": profiles, "methodology": methodology(t), "meta": _meta(t),
+                             "caveats": [_c("congestion_reading"), _c("live_snapshot")]})
 
 
 def long_haul_share(code: str, threshold_miles: int = config.LONG_HAUL_MILES) -> dict:
-    """Share of an airport's departures that are long haul, for passenger service and all-cargo service separately.
-
-    Args:
-        code: IATA code such as "ANC"
-        threshold_miles: nonstop segment distance that counts as long haul (default 1500 statute miles)
-    """
     t, d = _table()
     code = code.strip().upper()
     if code not in t.index:
         return {"error": f"{code} not found in T-100 data", "hint": "use search_airports to find the code"}
-    out = metrics.long_haul(d["od"], code, config.YEARS[-1], int(threshold_miles))
+    miles = int(threshold_miles)
+    out = metrics.long_haul(d["od"], code, config.YEARS[-1], miles)
+    out["definition"] = _c("long_haul_definition", threshold_miles=miles)
     out["curated_notes"] = d["notes"].get(code, [])
     out["meta"] = _meta(t)
-    out["caveats"] = ["The threshold is an assumption; 1,500 mi is roughly a 3.5-hour flight. Ask for another threshold if needed.",
-                      "Shares are by departures performed, not by seats or passengers."]
+    out["caveats"] = [_c("long_haul_threshold", threshold_miles=miles), _c("long_haul_by_departures")]
     return metrics.jsonable(out)
 
 
 def live_status(code: str) -> dict:
-    """Current FAA delay/ground-stop/closure status for an airport and, if configured, yesterday's OpenSky departure count.
-
-    Args:
-        code: IATA code such as "EWR"
-    """
     t, _ = _table()
     code = code.strip().upper()
     faa = live.faa_status()
@@ -193,5 +170,9 @@ def live_status(code: str) -> dict:
         "airport": code,
         "faa": {"updated": faa.get("updated"), "entries": faa.get("entries", {}).get(code, []), "error": faa.get("error")},
         "opensky": live.opensky_departures(icao),
-        "caveats": ["FAA status is a snapshot at query time, not history; an empty list means no current FAA advisory."],
+        "caveats": [_c("faa_snapshot")],
     })
+
+
+TOOLS = [search_airports, rank_airports, airport_profile, compare_airports, long_haul_share, live_status]
+agentfiles.apply_tool_docs(TOOLS, regions=", ".join(config.REGIONS))

@@ -23,6 +23,7 @@ def test_rank_all_and_region(fake_table):
     assert [a["score"] for a in out["ranking"]] == [80.0, 70.0]
     assert out["ranking"][0]["breakdown"][0]["component"] == "runway_pressure"
     assert out["meta"]["universe_size"] == 2 and out["methodology"]["weights"]["runway_pressure"] == 0.35
+    assert "opportunity" in out["methodology"]["text"] and "| runway_pressure | 0.35 |" in out["methodology"]["text"]
     json.dumps(out)
     ne = tools.rank_airports(region="new_england")
     assert [a["code"] for a in ne["ranking"]] == ["AAA"] and ne["filter"]["states"][0] == "MA"
@@ -34,6 +35,7 @@ def test_profile_unmet_live_and_notes(fake_table):
     p = tools.airport_profile("bbb")
     assert p["code"] == "BBB" and p["load_factor_pct"] == 92.3 and p["runways"] == 1
     assert p["unmet_demand"]["level"] == "high"
+    assert "not observable" in p["unmet_demand"]["note"] and p["unmet_demand"]["thresholds"]["full_flights"] == "load factor >= 85%"
     assert p["live"]["faa"]["entries"][0]["Reason"] == "WX" and p["live"]["opensky"]["status"] == "not configured"
     assert p["curated_notes"][0]["type"] == "constraint"
     json.dumps(p)
@@ -56,6 +58,7 @@ def test_compare_bounds_and_content(fake_table):
 def test_long_haul_tool(fake_table):
     out = tools.long_haul_share("AAA")
     assert out["passenger_service"]["long_haul_share_pct"] == 40.0 and out["threshold_miles"] == 1500
+    assert "1500 statute miles" in out["definition"] and "1,500-mile" in out["caveats"][0]
     assert out["curated_notes"] == [] and "meta" in out
     json.dumps(out)
     assert tools.long_haul_share("AAA", threshold_miles=2500)["passenger_service"]["long_haul_share_pct"] == 0.0

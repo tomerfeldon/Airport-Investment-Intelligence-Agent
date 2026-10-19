@@ -89,7 +89,7 @@ SEA 84.4 and DEN 82.5 - runway pressure and load factor, not raw size, separate 
 | OurAirports | runway length/status, coordinates, ICAO codes | public-domain CSV | runway count ignores spacing, taxiways, gates - see curated notes |
 | FAA NAS Status | current ground delays, ground stops, closures | public XML, no key | snapshot only, no history |
 | OpenSky Network (optional) | yesterday's departures per airport | REST + OAuth2, free account | volunteer-receiver coverage; counts are lower bounds |
-| Curated notes | four verified structural facts (SNA passenger cap, SFO runway spacing, DCA slots/perimeter, ANC cargo stop) | hand-written JSON with source URLs, shown as "curated note" | small by design; a reviewer can see exactly what human knowledge was injected |
+| Curated notes | four verified structural facts (SNA passenger cap, SFO runway spacing, DCA slots/perimeter, ANC cargo stop) | hand-written Markdown (`data/airport_notes.md`) with a source URL per note, shown as "curated note" | small by design; a reviewer can see exactly what human knowledge was injected |
 
 Cross-check run on 2026-10-19 with OpenSky credentials configured: OpenSky recorded 463 departures from SFO and 217 from
 ANC for the previous UTC day, against 2025 BTS averages of 521 and 241 departures per day (all service classes). The
@@ -110,6 +110,15 @@ plausibility checks on the real data.
 result under each answer ("Data behind this answer"); tool exceptions go back to the model as data; the system
 prompt forbids numbers that did not come from a tool and requires an "Assumptions & caveats" section;
 temperature 0.2.
+
+**Defined in Markdown, executed in Python:** the agent's definition is not code. The system prompt
+(`agent/SYSTEM.md`), the tool descriptions Gemini sees (`agent/tools.md`), the methodology text
+(`agent/methodology.md`, also rendered in the sidebar), every caveat sentence (`agent/caveats.md`), the example
+questions and the curated airport facts (`data/airport_notes.md`) are Markdown files that `agentfiles.py` loads at
+runtime. Python holds the math, the HTTP clients, the tool loop and the UI, and no model-facing or user-facing
+prose. An analyst can change the agent's voice, a caveat or a curated note without a developer; prompt changes
+are reviewed as documents; and a tool description without a function, or a function without a description,
+fails at import instead of drifting silently.
 
 ## 5. Key tradeoffs
 

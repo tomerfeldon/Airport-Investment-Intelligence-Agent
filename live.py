@@ -12,6 +12,8 @@ import xml.etree.ElementTree as ET
 
 import requests
 
+import agentfiles
+
 FAA_URL = "https://nasstatus.faa.gov/api/airport-status-information"
 OPENSKY_TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token"
 OPENSKY_API = "https://opensky-network.org/api"
@@ -97,4 +99,4 @@ def opensky_departures(icao: str | None) -> dict:
     dests = collections.Counter((f.get("estArrivalAirport") or "unknown") for f in flights)
     return {"status": "ok", "icao": icao, "window_utc_epoch": [begin, end], "departures": len(flights),
             "top_destinations": [{"icao": k, "flights": v} for k, v in dests.most_common(5)],
-            "caveat": "OpenSky coverage depends on volunteer receivers; counts are lower bounds."}
+            "caveat": agentfiles.caveat("opensky_coverage")}

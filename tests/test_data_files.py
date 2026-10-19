@@ -33,11 +33,11 @@ def test_airports_and_runways_files():
 
 
 def test_airport_notes_schema():
-    import json
-    notes = json.loads((DATA / "airport_notes.json").read_text(encoding="utf-8"))
+    import agentfiles
+    notes = agentfiles.notes(DATA / "airport_notes.md")
     assert {"SNA", "SFO", "DCA", "ANC"} <= set(notes)
     for code, items in notes.items():
-        assert code.isupper() and len(code) == 3
+        assert code.isupper() and len(code) == 3 and items
         for n in items:
             assert n["type"] in {"constraint", "context"}
             assert n["text"] and n["source"].startswith("https://") and n["verified"]
