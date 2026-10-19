@@ -99,8 +99,8 @@ lower-bound sanity check next to the score rather than mixed into it.
 ## 4. Where AI is used - and where it is deliberately not
 
 **Used:** Gemini (`gemini-3.8-flash`, free tier, via `google-genai`) maps the question to one of six tools and
-their arguments, narrates the result, keeps conversational context for follow-ups, and (bonus) transcribes
-voice input.
+their arguments, narrates the result in the user's language (a Hebrew question gets a Hebrew answer), keeps
+conversational context for follow-ups, and (bonus) transcribes voice input.
 
 **Not used:** every metric, percentile, score, flag and ranking is computed in `metrics.py` and `tools.py`;
 `pytest` covers them with a synthetic dataset where the expected numbers are worked out by hand, plus

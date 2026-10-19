@@ -12,6 +12,7 @@ import live     # noqa: E402
 import tools    # noqa: E402
 
 st.set_page_config(page_title="Airport Investment Intelligence", page_icon="✈️", layout="wide")
+st.markdown("<style>[data-testid='stChatMessageContent'] :is(p, li, td, th, h1, h2, h3, h4) {unicode-bidi: plaintext; text-align: start;}</style>", unsafe_allow_html=True)   # Hebrew answers read right-to-left, English stays left-to-right
 
 EXAMPLES = [
     "Which airports in New England are strong candidates for terminal expansion?",

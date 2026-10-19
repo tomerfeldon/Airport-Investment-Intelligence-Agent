@@ -33,6 +33,9 @@ which model produced it. Set `GEMINI_MODEL` in `.env` to put another model first
 - What is the unmet flight demand in SFO airport and why?
 - …and follow-ups: "and PVD vs BDL?", "use 2,500 miles as the long-haul threshold".
 
+Questions can be asked in Hebrew (or any other language): the agent answers in the language of the question and
+keeps airport codes and numbers unchanged.
+
 Under every answer, "Data behind this answer" shows each tool call and its full result. Voice input (microphone
 widget above the chat box) is transcribed by the same model.
 
