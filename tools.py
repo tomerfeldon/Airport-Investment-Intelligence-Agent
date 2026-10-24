@@ -8,6 +8,7 @@ agent/caveats.md.
 from __future__ import annotations
 
 import functools
+import re
 
 import pandas as pd
 
@@ -75,16 +76,34 @@ def _row_summary(r: pd.Series, notes: dict) -> dict:
 
 # The six tools. Their docstrings are assigned from agent/tools.md below.
 
+def _metro_matches(query: str, metros: dict[str, list[str]]) -> list[str]:
+    """Metro names whose full name, a whole word of it, or (for queries longer than 3 characters) any part of it matches."""
+    q = query.strip().lower()
+    out = []
+    for name in metros:
+        name_l = name.lower()
+        if q == name_l or q in re.findall(r"[a-z]+", name_l) or (len(q) > 3 and q in name_l):
+            out.append(name)
+    return out
+
+
 def search_airports(query: str) -> dict:
-    t, _ = _table()
+    t, d = _table()
     q = query.strip().lower()
     u = t[t.in_universe]
     hit = u[(u.index.str.lower() == q)
             | u["name"].fillna("").str.lower().str.contains(q, regex=False)
             | u["municipality"].fillna("").str.lower().str.contains(q, regex=False)]
     matches = [{"code": c, "name": r["name"], "city": r["municipality"], "state": r["state"]} for c, r in hit.head(10).iterrows()]
-    return metrics.jsonable({"query": query, "matches": matches, "meta": _meta(t),
-                             "hint": "" if matches else _c("search_no_match")})
+    metro_list = []
+    for name in _metro_matches(query, d.get("metros", {})):
+        codes = [c for c in d["metros"][name] if c in t.index]
+        metro_list.append({"metro": name, "airports": [
+            {"code": c, "name": t.loc[c, "name"], "city": t.loc[c, "municipality"], "state": t.loc[c, "state"],
+             "in_universe": bool(t.loc[c, "in_universe"]), "primary": i == 0} for i, c in enumerate(codes)]})
+    ambiguous = bool(metro_list) or len(matches) > 1
+    hint = _c("search_ambiguous") if ambiguous else ("" if matches else _c("search_no_match"))
+    return metrics.jsonable({"query": query, "matches": matches, "metros": metro_list, "meta": _meta(t), "hint": hint})
 
 
 def rank_airports(region: str = "", states: list[str] | None = None, top_n: int = 10) -> dict:

@@ -5,10 +5,10 @@ schema description Gemini sees; `{regions}` is rendered from `config.REGIONS`. A
 or a function without a section, fails at import.
 
 ## search_airports
-Find airports in the ranking universe by IATA code, airport name or city. Use when unsure of a code.
+Find airports by IATA code, airport name, city or metro area. A metro query (for example "Los Angeles", "LA", "Chicago", "New York", "Bay Area") returns every airport of that metro with the primary one marked. Call this before any other tool whenever the user names a place rather than a specific airport; when the result lists more than one airport, show the list to the user and ask which to use instead of choosing.
 
 Args:
-    query: free text such as "Santa Ana", "Logan", "SNA"
+    query: free text such as "Los Angeles", "Santa Ana", "Logan", "SNA"
 
 ## rank_airports
 Rank US airports by Expansion Opportunity Score (0-100), optionally filtered to a region or states.

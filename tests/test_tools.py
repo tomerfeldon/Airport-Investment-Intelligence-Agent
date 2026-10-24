@@ -11,7 +11,8 @@ import tools
 def fake_table(synthetic, monkeypatch):
     od, airports, runways, notes = synthetic
     t = metrics.build_table(od, airports, runways, 2025, 2024)
-    monkeypatch.setattr(tools, "_table", lambda: (t, {"od": od, "airports": airports, "runways": runways, "notes": notes}))
+    monkeypatch.setattr(tools, "_table", lambda: (t, {"od": od, "airports": airports, "runways": runways, "notes": notes,
+                                                     "metros": {"Alpha Metro (AM)": ["AAA", "CCC"]}}))
     monkeypatch.setattr(live, "faa_status", lambda: {"updated": "now", "entries": {"BBB": [{"type": "Ground Delay Programs", "Reason": "WX"}]}})
     monkeypatch.setattr(live, "opensky_departures", lambda icao: {"status": "not configured"})
     return t
@@ -68,6 +69,13 @@ def test_search_and_live_status(fake_table):
     assert [m["code"] for m in tools.search_airports("bravo")["matches"]] == ["BBB"]
     assert [m["code"] for m in tools.search_airports("AAA")["matches"]] == ["AAA"]
     assert tools.search_airports("nowhere")["matches"] == []
+    assert tools.search_airports("bravo")["hint"] == "" and tools.search_airports("AAA")["metros"] == []
+    metro = tools.search_airports("alpha metro")
+    assert metro["metros"][0]["metro"] == "Alpha Metro (AM)"
+    assert [(a["code"], a["primary"], a["in_universe"]) for a in metro["metros"][0]["airports"]] == [("AAA", True, True), ("CCC", False, False)]
+    assert "ask" in metro["hint"]
+    assert tools.search_airports("am")["metros"] and tools.search_airports("alp")["metros"] == []   # short queries match whole words only
+    json.dumps(metro)
     ls = tools.live_status("AAA")
     assert ls["faa"]["entries"] == [] and ls["opensky"]["status"] == "not configured"
     json.dumps(ls)

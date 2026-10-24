@@ -21,7 +21,7 @@ methodology, data limits and tradeoffs; `README.md` the quick start.
 - `agent.py` - the Gemini tool loop (manual, at most 6 iterations, temperature 0.2) and the system prompt
 - `live.py` - FAA NAS status and optional OpenSky overlay; failures come back as `"unavailable"`, never as exceptions
 - `app.py` - Streamlit chat. Rendering only; no logic belongs here.
-- `data/` - committed extracts (T-100 2024-2025, OurAirports airports and runways) and `airport_notes.md`, hand-curated facts with a source URL each
+- `data/` - committed extracts (T-100 2024-2025, OurAirports airports and runways), `airport_notes.md` (hand-curated facts with a source URL each) and `metros.md` (metro areas with several airports, primary first)
 
 ## Rules that keep the product honest
 
@@ -32,6 +32,7 @@ methodology, data limits and tradeoffs; `README.md` the quick start.
 - No model-facing or user-facing prose in `.py` files. The prompt, tool descriptions, methodology text, caveats, example questions and curated notes live in `agent/*.md` and `data/airport_notes.md`; code reads them through `agentfiles.py`. Exceptions: error strings (diagnostics) and UI chrome such as the title, button labels and placeholders in `app.py`.
 - The tool descriptions in `agent/tools.md` plus the type hints are the schema Gemini sees. Changing a description changes model behavior; check the four sample questions afterwards.
 - Curated notes are labeled as such in answers. Do not add airport facts anywhere else in code.
+- A city or metro with several airports is never resolved by the model: `search_airports` returns the metro's airports from `data/metros.md` with the primary marked and a hint, and the prompt makes the model list them and ask. Keep that behavior when touching search or rule 2 of `agent/SYSTEM.md`.
 
 ## When the score changes
 

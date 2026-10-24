@@ -167,3 +167,28 @@ San Francisco International Airport (SFO) exhibits a **moderate** unmet-demand s
 * **Capacity Focus**: The Expansion Opportunity Score measures capacity-expansion opportunity, not profitability or investment return (ROI).
 * **Unmet-Demand Proxy**: Unmet demand is an indirect proxy; travelers who selected alternative regional airports or chose not to fly cannot be directly observed in public BTS data.
 * **Live Status Snapshot**: FAA status reflects a real-time snapshot at query time, not operational history, and is not factored into the score.
+
+## Update 2026-10-24: city names with several airports
+
+Since 2026-10-24 the agent never picks an airport for a city or metro name. `search_airports` returns the
+metro's airports from `data/metros.md` and the agent lists them and asks. Two live conversations on
+`gemini-3.8-flash` (each turn took 150-280 s on that day because the API itself was slow; the tool calls are
+instant):
+
+**"Compare Los Angeles and Chicago airport congestion levels."**
+Tools: `search_airports(query='Los Angeles')`, `search_airports(query='Chicago')`. Answer (abridged):
+
+> Both the Los Angeles and Chicago metropolitan areas are served by multiple airports:
+> Los Angeles Area: LAX - Los Angeles International (Primary), BUR - Hollywood Burbank, LGB - Long Beach,
+> ONT - Ontario, SNA - John Wayne Orange County. Chicago Area: ORD - O'Hare (Primary), MDW - Midway.
+> Which specific airports would you like to compare (e.g., the primary hubs LAX vs. ORD), or would you like to
+> compare all of them?
+
+Follow-up **"LAX and ORD"** -> `compare_airports(codes=['LAX', 'ORD'])` -> the usual comparison (LAX 187.6
+departures per runway per day on 4 runways vs ORD 143.5 on 8; scores 80.4 vs 87.5).
+
+**"Compare LA and Santa Ana airport congestion levels."** (the assignment's second sample question)
+Tools: `search_airports(query='LA')`, `search_airports(query='Santa Ana')`. The agent resolved Santa Ana to SNA,
+listed the five Los Angeles airports in a table with LAX marked as primary, and asked which one to compare with
+SNA. Follow-up **"LAX"** -> `compare_airports(codes=['LAX', 'SNA'])` -> the same comparison as on 2026-10-19
+(LAX 80.4 vs SNA 74.0, SNA's single runway and legal cap from the curated note).

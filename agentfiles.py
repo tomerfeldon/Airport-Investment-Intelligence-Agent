@@ -67,6 +67,12 @@ def notes(path: pathlib.Path | str) -> dict[str, list[dict]]:
     return out
 
 
+def metros(path: pathlib.Path | str) -> dict[str, list[str]]:
+    """data/metros.md: '## Metro name (short forms)' per metro, bullets 'CODE - airport name', primary airport first."""
+    return {name: [b.split(" - ")[0].strip().upper() for b in bullets(body)]
+            for name, body in sections(pathlib.Path(path).read_text(encoding="utf-8")).items()}
+
+
 def apply_tool_docs(functions, **values) -> None:
     """Set each tool's docstring from agent/tools.md. A function without a section, or a section without a
     function, is a startup error rather than a silent drift between what the model is told and what runs."""

@@ -129,7 +129,9 @@ tool description without a function (or the reverse) fails at import instead of 
 Every tool result carries `meta` (data year, source, universe size) and `caveats`, and the prompt makes the model
 repeat them. Live sources degrade to an explicit "unavailable" rather than a silent zero. Airports below the
 threshold get metrics but `score: null`. Curated notes are labeled with their source. The sidebar states the
-formula, the weights and what the score does not measure.
+formula, the weights and what the score does not measure. A city or metro name with several airports (Los
+Angeles, Chicago, New York, Washington, the Bay Area; listed in `data/metros.md`) is never resolved silently: the
+agent lists the airports with the primary one marked and asks which to use, or compares all of them on request.
 
 ## 7. Limitations and next steps
 

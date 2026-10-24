@@ -3,9 +3,9 @@ import os
 
 # Free-tier quotas are per model and per day (gemini-3.8-flash: 5 requests/minute, 20/day on 2026-10-19),
 # so the agent walks this list when a model answers 429. GEMINI_MODEL, if set, goes first.
+# gemini-2.5-flash was the last fallback until 2026-10-24, when it started returning 404 for new accounts.
 MODELS = [m for m in dict.fromkeys([os.environ.get("GEMINI_MODEL", ""), "gemini-3.8-flash",
-                                     "gemini-3.5-flash-lite", "gemini-2.5-flash"]) if m]
-MODEL = MODELS[0]
+                                     "gemini-3.5-flash", "gemini-3.5-flash-lite"]) if m]
 
 DATA_DIR = "data"
 YEARS = [2024, 2025]                      # [prior, latest]; both must be complete calendar years in T-100

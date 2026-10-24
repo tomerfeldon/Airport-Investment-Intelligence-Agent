@@ -18,13 +18,14 @@ DATA = pathlib.Path(config.DATA_DIR)
 
 @functools.lru_cache(maxsize=1)
 def load() -> dict:
-    """Read the committed data files once. Curated notes are Markdown (data/airport_notes.md)."""
-    notes_path = DATA / "airport_notes.md"
+    """Read the committed data files once. Curated notes and metro areas are Markdown (data/*.md)."""
+    notes_path, metros_path = DATA / "airport_notes.md", DATA / "metros.md"
     return {
         "od": pd.read_csv(DATA / "t100_od_annual.csv.gz"),
         "airports": pd.read_csv(DATA / "airports_us.csv"),
         "runways": pd.read_csv(DATA / "runways_us.csv"),
         "notes": agentfiles.notes(notes_path) if notes_path.exists() else {},
+        "metros": agentfiles.metros(metros_path) if metros_path.exists() else {},
     }
 
 

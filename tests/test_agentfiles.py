@@ -60,6 +60,13 @@ verified: 2026-01-03
     assert notes["BBB"][0]["type"] == "context" and notes["BBB"][0]["text"] == "Only note."
 
 
+def test_metros_parser(tmp_path):
+    p = tmp_path / "metros.md"
+    p.write_text("# Metros\n\n## Los Angeles (LA)\n- LAX - Los Angeles International\n- bur - Hollywood Burbank\n\n"
+                 "## Chicago\n- ORD - O'Hare\n- MDW - Midway\n", encoding="utf-8")
+    assert agentfiles.metros(p) == {"Los Angeles (LA)": ["LAX", "BUR"], "Chicago": ["ORD", "MDW"]}
+
+
 def test_apply_tool_docs_sets_docstrings_and_detects_drift(monkeypatch):
     def f_one():
         pass

@@ -49,6 +49,19 @@ def test_sna_has_one_commercial_runway_and_lax_has_four():
     assert by["SNA"]["curated_notes"]
 
 
+def test_metro_codes_exist_and_primaries_are_in_universe():
+    t, d = tools._table()
+    assert d["metros"], "data/metros.md is missing or empty"
+    for metro, codes in d["metros"].items():
+        missing = [c for c in codes if c not in t.index]
+        assert not missing, (metro, missing)
+        assert t.loc[codes[0], "in_universe"], f"{metro}: primary airport {codes[0]} is below the universe threshold"
+    la = tools.search_airports("Los Angeles")
+    airports = la["metros"][0]["airports"]
+    assert airports[0]["code"] == "LAX" and airports[0]["primary"] and len(airports) == 5 and "ask" in la["hint"]
+    assert len(tools.search_airports("Chicago")["matches"]) == 2 and "ask" in tools.search_airports("Chicago")["hint"]
+
+
 def test_every_tool_result_is_json():
     for r in (tools.rank_airports(top_n=50), tools.airport_profile("BOS"), tools.compare_airports(["LAX", "SNA"]),
               tools.long_haul_share("ANC"), tools.live_status("SFO"), tools.search_airports("Santa Ana")):

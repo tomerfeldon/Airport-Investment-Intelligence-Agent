@@ -33,6 +33,9 @@ long haul = nonstop segment distance >= {threshold_miles} statute miles (BTS gre
 ## search_no_match
 no match in the universe; the airport may be too small or spelled differently
 
+## search_ambiguous
+Several airports match this place. Show the user the list (code, name, city, which one is the primary airport) and ask which airport to use, or whether to compare all of them. Do not call any other tool until the user answers.
+
 ## no_runways
 No runway data matched in OurAirports; runway pressure excluded and weights renormalized.
 

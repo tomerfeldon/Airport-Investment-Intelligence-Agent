@@ -26,7 +26,7 @@ Optional live departures from OpenSky: create a free API client at https://opens
 
 Free-tier note: Gemini quotas are per model - on 2026-10-19 `gemini-3.8-flash` allowed 5 requests per minute
 and 20 per day, and one question uses 2-3 requests. The agent therefore falls back through
-`gemini-3.5-flash-lite` and `gemini-2.5-flash` when a model is exhausted (`config.MODELS`); each answer shows
+`gemini-3.5-flash` and `gemini-3.5-flash-lite` when a model is exhausted (`config.MODELS`); each answer shows
 which model produced it. Set `GEMINI_MODEL` in `.env` to put another model first.
 
 ## Try asking
@@ -36,6 +36,10 @@ which model produced it. Set `GEMINI_MODEL` in `.env` to put another model first
 - What is the percentage of long haul flights out of Anchorage airport?
 - What is the unmet flight demand in SFO airport and why?
 - …and follow-ups: "and PVD vs BDL?", "use 2,500 miles as the long-haul threshold".
+
+A city or metro name with several airports (Los Angeles, Chicago, New York, Washington, the Bay Area...) is never
+resolved silently: the agent lists that metro's airports first, with the primary one marked, and asks which to use
+or whether to compare all of them. The metro list lives in `data/metros.md`.
 
 Questions can be asked in Hebrew (or any other language): the agent answers in the language of the question and
 keeps airport codes and numbers unchanged.
@@ -70,6 +74,6 @@ checks the committed data for plausibility (universe size, SFO load factor, SNA 
     live.py                FAA NAS status, OpenSky
     config.py              every tunable
     scripts/fetch_data.py  builds data/ from BTS TranStats + OurAirports
-    data/                  committed extracts + curated notes (airport_notes.md)
+    data/                  committed extracts + curated notes (airport_notes.md) + metro areas (metros.md)
     tests/
     DESIGN.md              scoring methodology, tradeoffs, where AI is used
